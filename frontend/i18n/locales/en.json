@@ -1,0 +1,27 @@
+{
+  "common": {
+    "panel": "Dashboard",
+    "transactions": "Transactions",
+    "agents": "Agents",
+    "reports": "Reports",
+    "newTransaction": "New transaction",
+    "logout": "Logout",
+    "collapse": "Collapse",
+    "showing": "Showing {filtered} / {total}",
+    "close": "Close",
+    "cancel": "Cancel"
+  },
+  "login": {
+    "title": "Sign in",
+    "subtitle": "Continue with demo credentials.",
+    "email": "Email",
+    "password": "Password",
+    "show": "Show",
+    "hide": "Hide",
+    "submit": "Sign in",
+    "submitting": "Signing in...",
+    "invalid": "Invalid email or password.",
+    "hint": "Demo credentials are prefilled."
+  }
+}
+

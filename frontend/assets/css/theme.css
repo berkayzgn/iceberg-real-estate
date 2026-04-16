@@ -1,0 +1,27 @@
+:root {
+  --font-size: 16px;
+
+  /* Brand */
+  --color-brand-amber: #d4a853;
+  --color-brand-navy: #0a1628;
+
+  /* App surface colors (kept simple for Nuxt/Tailwind v3) */
+  --app-bg: #fafbfc;
+  --app-card-bg: #ffffff;
+  --app-border: #e2e8f0;
+  --app-muted: #64748b;
+  --app-muted-2: #94a3b8;
+
+  /* Radii (React prototype uses 10px-ish / 2xl feel) */
+  --radius: 0.625rem;
+}
+
+html {
+  font-size: var(--font-size);
+}
+
+body {
+  background: var(--app-bg);
+  color: #0f172a;
+}
+

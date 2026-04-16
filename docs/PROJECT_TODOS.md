@@ -7,7 +7,7 @@ Bu dosya rehbere uygun geliştirmeyi **aşama aşama** takip etmek içindir. Tam
 ## Aşama 0 — Hazırlık
 
 - [x] Repo kökünde `backend/` ve `frontend/` (Nuxt) dizin yapısına karar verildi
-- [ ] MongoDB Atlas: cluster, kullanıcı, network access, connection string hazır _(sen oluşturduktan sonra işaretle)_
+- [x] MongoDB Atlas: cluster, kullanıcı, network access, connection string hazır _(sen oluşturduktan sonra işaretle)_
 
 ---
 
@@ -23,7 +23,7 @@ Bu dosya rehbere uygun geliştirmeyi **aşama aşama** takip etmek içindir. Tam
 
 ## Aşama 2 — Ortak enum ve kurallar (Rehber §3, §4.2)
 
-- [ ] `common/enums/transaction-stage.enum.ts`: `TransactionStage` + `VALID_TRANSITIONS`
+- [x] `common/enums/transaction-stage.enum.ts`: `TransactionStage` + `VALID_TRANSITIONS`
 
 ---
 
@@ -117,10 +117,10 @@ Rehberde detay yok; uygulama ihtiyacına göre doldurun:
 
 ## Aşama 13 — Nuxt 3 frontend kurulum (Rehber §5.1–5.2)
 
-- [ ] `npx nuxi@latest init frontend`
-- [ ] `@pinia/nuxt`, `@nuxtjs/tailwindcss`
-- [ ] `runtimeConfig.public.apiBase` → `.env` / `NUXT_PUBLIC_API_BASE`
-- [ ] CORS / backend URL geliştirme ortamında doğrulandı
+- [x] `npx nuxi@latest init frontend` _(manuel Nuxt 3 iskeleti; `nuxi` şu an Nuxt 4 şablonu önerdiği için)_
+- [x] `@pinia/nuxt`, `@nuxtjs/tailwindcss`
+- [x] `runtimeConfig.public.apiBase` → `.env` / `NUXT_PUBLIC_API_BASE`
+- [x] CORS / backend URL geliştirme ortamında doğrulandı
 
 ---
 
@@ -128,7 +128,7 @@ Rehberde detay yok; uygulama ihtiyacına göre doldurun:
 
 - [ ] `stores/transactions.store.ts`
 - [ ] `stores/agents.store.ts`
-- [ ] `stores/ui.store.ts`
+- [x] `stores/ui.store.ts` _(sidebar; session: `stores/session.store.ts`)_
 - [ ] `types/transaction.types.ts`, `types/agent.types.ts`
 
 ---
@@ -143,31 +143,31 @@ Rehberde detay yok; uygulama ihtiyacına göre doldurun:
 
 ## Aşama 16 — Sayfalar (Rehber §2, §5.4)
 
-- [ ] `pages/index.vue` — Dashboard (istatistikler, son işlemler, grafik)
-- [ ] `pages/transactions/index.vue` — Liste
-- [ ] `pages/transactions/[id].vue` — Detay + aşama geçişi
-- [ ] `pages/transactions/create.vue` — Yeni işlem
-- [ ] `pages/agents/index.vue`, `pages/agents/[id].vue`
-- [ ] `pages/reports/index.vue`
+- [x] `pages/index.vue` — Dashboard (demo metrik + huni + aktivite; Recharts yok)
+- [x] `pages/transactions/index.vue` — Liste
+- [x] `pages/transactions/[id].vue` — Detay _(aşama geçişi API sonrası)_
+- [x] `pages/transactions/create.vue` — Yeni işlem _(form iskeleti)_
+- [x] `pages/agents/index.vue`, `pages/agents/[id].vue`
+- [x] `pages/reports/index.vue`
 
 ---
 
 ## Aşama 17 — Bileşenler (Rehber §2 frontend dizin yapısı)
 
 - [ ] `components/transaction/StageTracker.vue`
-- [ ] `components/transaction/TransactionCard.vue`
+- [ ] `components/transaction/TransactionCard.vue` _(şimdilik `DemoTransactionCard.vue`)_
 - [ ] `components/transaction/FinancialBreakdown.vue`
 - [ ] `components/transaction/StageTransitionBtn.vue`
 - [ ] `components/agent/AgentCard.vue`
-- [ ] `components/dashboard/StatCard.vue`, `RecentTransactions.vue`, `CommissionChart.vue`
-- [ ] `components/shared/AppHeader.vue`, `AppSidebar.vue`, `LoadingSpinner.vue`
+- [x] `components/dashboard/StatCard.vue` (sparkline = eski `MetricCard` / Recharts alan grafiği) · [ ] `RecentTransactions.vue` · [x] `CommissionChart` karşılığı: `components/charts/CommissionBarChart.vue` (raporlar)
+- [ ] `components/shared/AppHeader.vue` · [x] `AppSidebar.vue` · [ ] `LoadingSpinner.vue`
 
 ---
 
 ## Aşama 18 — Eski React / Vite prototipi
 
-- [ ] Karar: `src/` (mevcut Vite+React) kaldırıldı mı, `legacy/` altına taşındı mı, yoksa repo ayrıldı mı?
-- [ ] Tek “canlı” frontend: Nuxt `frontend/`
+- [x] Karar: `src/` (mevcut Vite+React) kaldırıldı mı, `legacy/` altına taşındı mı, yoksa repo ayrıldı mı? _(kök `src/` + Vite/React kaldırıldı)_
+- [x] Tek “canlı” frontend: Nuxt `frontend/`
 
 ---
 

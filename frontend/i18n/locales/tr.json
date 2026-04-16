@@ -1,0 +1,27 @@
+{
+  "common": {
+    "panel": "Panel",
+    "transactions": "Islemler",
+    "agents": "Danismanlar",
+    "reports": "Raporlar",
+    "newTransaction": "Yeni islem",
+    "logout": "Cikis",
+    "collapse": "Daralt",
+    "showing": "{filtered} / {total} gosteriliyor",
+    "close": "Kapat",
+    "cancel": "Vazgec"
+  },
+  "login": {
+    "title": "Giris yap",
+    "subtitle": "Demo kimlik bilgileriyle devam edin.",
+    "email": "E-posta",
+    "password": "Sifre",
+    "show": "Goster",
+    "hide": "Gizle",
+    "submit": "Giris yap",
+    "submitting": "Giris yapiliyor...",
+    "invalid": "E-posta veya sifre hatali.",
+    "hint": "Demo kimlik bilgileri hazir."
+  }
+}
+

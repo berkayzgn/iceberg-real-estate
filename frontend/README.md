@@ -1,8 +1,16 @@
 # Frontend (Nuxt 3)
 
-Bu klasör **Aşama 13**’te (`system-guide.md` / `docs/PROJECT_TODOS.md`) doldurulacak:
+`docs/system-guide.md` ile uyumlu: **Nuxt 3**, **Pinia** (`@pinia/nuxt`), **Tailwind** (`@nuxtjs/tailwindcss`), API için **`$fetch` / `useFetch`** ve `runtimeConfig.public.apiBase`.
 
-- `npx nuxi@latest init .` (veya monorepo kökünden uygun şekilde)
-- Pinia, Tailwind, `NUXT_PUBLIC_API_BASE` → `http://localhost:3001/api` (backend `PORT` ile uyumlu)
+## Kurulum
 
-Şu an kök dizindeki **Vite + React** (`src/`) geçici prototiptir; Nuxt tamamlanınca tek resmi arayüz burası olacaktır.
+```bash
+cd frontend
+cp .env.example .env
+npm install
+npm run dev
+```
+
+Varsayılan geliştirme adresi: `http://localhost:3000` · API: `NUXT_PUBLIC_API_BASE` (ör. `http://localhost:3002/api`).
+
+İlk açılışta `/login` → **Demo ile devam et** (çerez tabanlı demo oturumu).

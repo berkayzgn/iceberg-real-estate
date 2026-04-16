@@ -22,8 +22,8 @@ npm install
 npm run start:dev
 ```
 
-- API öneki: **`/api`** (ör. `http://localhost:3001/api/health`)
-- Varsayılan port: **3001** (`PORT` ile değişir)
+- API öneki: **`/api`** (ör. `http://localhost:3002/api/health`)
+- Varsayılan port: **3002** (`PORT` ile değişir)
 
 ## Test
 
@@ -37,5 +37,5 @@ npm run test:e2e      # e2e — çalışan bir MongoDB gerekir (varsayılan URI:
 | Değişken       | Açıklama                          |
 |----------------|-----------------------------------|
 | `MONGODB_URI`  | Zorunlu — Mongo connection string |
-| `PORT`         | Opsiyonel, varsayılan `3001`      |
+| `PORT`         | Opsiyonel, varsayılan `3002`      |
 | `NODE_ENV`     | `development` / `production`    |

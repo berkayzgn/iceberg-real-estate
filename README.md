@@ -6,21 +6,17 @@ Rehber: `docs/system-guide.md` · Yapılacaklar: `docs/PROJECT_TODOS.md`
 
 | Klasör | Açıklama |
 |--------|----------|
-| `backend/` | **NestJS** API (`npm run start:dev`, önek `/api`) |
-| `frontend/` | **Nuxt 3** (Aşama 13’te kurulacak) — şimdilik `frontend/README.md` |
-| `src/` | Geçici **Vite + React** prototip (Nuxt tamamlanınca devre dışı bırakılacak) |
+| `backend/` | **NestJS** API (`npm run start:dev`, önek `/api`, varsayılan port **3002**) |
+| `frontend/` | **Nuxt 3** + Pinia + Tailwind (`npm run dev`) — canlı arayüz |
 
-Atlas hazır olunca: `backend/.env.example` → `backend/.env`, `MONGODB_URI` ile bağla. Ayrıntı: `backend/README.md`.
+Atlas: `backend/.env.example` → `backend/.env` (`MONGODB_URI`). Ayrıntı: `backend/README.md`, `frontend/README.md`.
 
----
+## Çalıştırma
 
-## Web sayfası tasarımı (mevcut Vite prototip)
+```bash
+# API
+cd backend && npm install && cp -n .env.example .env && npm run start:dev
 
-This is a code bundle for Web sayfası tasarımı. The original project is available at https://www.figma.com/design/c0zxJPZBTucnRPOIwh6tIZ/Web-sayfas%C4%B1-tasar%C4%B1m%C4%B1.
-
-### Running the code
-
-Run `npm i` to install the dependencies.
-
-Run `npm run dev` to start the development server.
-  
+# Arayüz (ayrı terminal)
+cd frontend && npm install && cp -n .env.example .env && npm run dev
+```
