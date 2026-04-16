@@ -1,4 +1,5 @@
-import { Stage, STAGE_ORDER, STAGE_LABELS } from '../data/mockData';
+import { useTranslation } from 'react-i18next';
+import { Stage, STAGE_ORDER } from '../data/mockData';
 import { Check } from 'lucide-react';
 
 interface ProgressStepperProps {
@@ -6,6 +7,7 @@ interface ProgressStepperProps {
 }
 
 export function ProgressStepper({ currentStage }: ProgressStepperProps) {
+  const { t } = useTranslation();
   const currentIdx = STAGE_ORDER.indexOf(currentStage);
 
   return (
@@ -37,7 +39,7 @@ export function ProgressStepper({ currentStage }: ProgressStepperProps) {
                   color: isCompleted ? '#059669' : isCurrent ? '#D4A853' : '#94A3B8',
                 }}
               >
-                {STAGE_LABELS[stage]}
+                {t(`stages.${stage}`)}
               </span>
             </div>
             {idx < STAGE_ORDER.length - 1 && (

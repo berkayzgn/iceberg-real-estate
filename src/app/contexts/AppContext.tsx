@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useCallback } from 'react';
-import { AGENTS, TRANSACTIONS, Agent, Transaction, Stage, getNextStage, STAGE_LABELS, ActivityEntry } from '../data/mockData';
+import i18n from '../../i18n';
+import { AGENTS, TRANSACTIONS, Agent, Transaction, Stage, getNextStage, ActivityEntry } from '../data/mockData';
 
 interface AppContextType {
   isAuthenticated: boolean;
@@ -54,7 +55,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         id: `al${Date.now()}`,
         timestamp: new Date().toISOString(),
         type: 'stage_change',
-        description: `Stage advanced to ${STAGE_LABELS[next]}.`,
+        description: i18n.t('activity.stageAdvancedTo', { stage: i18n.t(`stages.${next}`) }),
         fromStage: t.stage,
         toStage: next,
       };
@@ -77,7 +78,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
           id: `al${Date.now()}`,
           timestamp: new Date().toISOString(),
           type: 'stage_change',
-          description: 'Agreement signed. Transaction created.',
+          description: i18n.t('activity.agreementCreated'),
           toStage: 'agreement',
         },
       ],

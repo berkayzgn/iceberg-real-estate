@@ -1,9 +1,12 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router';
+import { useTranslation } from 'react-i18next';
 import { Building2, Eye, EyeOff, Loader2 } from 'lucide-react';
 import { useApp } from '../contexts/AppContext';
+import { LanguageSwitcher } from '../components/LanguageSwitcher';
 
 export function LoginPage() {
+  const { t } = useTranslation();
   const { login } = useApp();
   const navigate = useNavigate();
   const [email, setEmail] = useState('admin@propex.co');
@@ -22,7 +25,7 @@ export function LoginPage() {
     if (ok) {
       navigate('/');
     } else {
-      setError('Invalid email or password. Please try again.');
+      setError(t('login.invalidCredentials'));
     }
   }
 
@@ -31,6 +34,9 @@ export function LoginPage() {
       className="min-h-screen flex items-center justify-center p-4 relative overflow-hidden"
       style={{ backgroundColor: '#0A1628' }}
     >
+      <div className="absolute top-4 right-4 z-20">
+        <LanguageSwitcher variant="dark" />
+      </div>
       {/* Background gradients */}
       <div
         className="absolute top-0 right-0 w-[600px] h-[600px] rounded-full opacity-10 pointer-events-none"
@@ -76,10 +82,10 @@ export function LoginPage() {
                 <Building2 className="w-7 h-7 text-white" />
               </div>
               <h1 className="text-[#0A1628] text-center" style={{ fontFamily: 'Plus Jakarta Sans, sans-serif' }}>
-                Welcome to PropEx
+                {t('login.title')}
               </h1>
               <p className="text-[#64748B] text-sm mt-1 text-center">
-                Sign in to manage your transactions
+                {t('login.subtitle')}
               </p>
             </div>
 
@@ -87,12 +93,12 @@ export function LoginPage() {
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
                 <label className="block text-sm font-medium text-[#0A1628] mb-1.5">
-                  Email Address
+                  {t('login.email')}
                 </label>
                 <input
                   type="email"
                   className="w-full px-4 py-3 rounded-xl border border-[#E2E8F0] text-[#0A1628] text-sm bg-[#FAFBFC] focus:outline-none focus:border-[#D4A853] focus:ring-2 focus:ring-[#D4A853]/20 transition-all"
-                  placeholder="you@propex.co"
+                  placeholder={t('login.emailPlaceholder')}
                   value={email}
                   onChange={e => setEmail(e.target.value)}
                   autoComplete="email"
@@ -102,7 +108,7 @@ export function LoginPage() {
 
               <div>
                 <label className="block text-sm font-medium text-[#0A1628] mb-1.5">
-                  Password
+                  {t('login.password')}
                 </label>
                 <div className="relative">
                   <input
@@ -118,7 +124,7 @@ export function LoginPage() {
                     type="button"
                     onClick={() => setShowPw(p => !p)}
                     className="absolute right-3 top-1/2 -translate-y-1/2 text-[#94A3B8] hover:text-[#64748B] transition-colors"
-                    aria-label={showPw ? 'Hide password' : 'Show password'}
+                    aria-label={showPw ? t('login.hidePassword') : t('login.showPassword')}
                   >
                     {showPw ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                   </button>
@@ -134,10 +140,10 @@ export function LoginPage() {
               <div className="flex items-center justify-between text-sm">
                 <label className="flex items-center gap-2 text-[#64748B] cursor-pointer">
                   <input type="checkbox" className="rounded" />
-                  Remember me
+                  {t('login.rememberMe')}
                 </label>
                 <button type="button" className="text-[#D4A853] font-medium hover:underline">
-                  Forgot password?
+                  {t('login.forgotPassword')}
                 </button>
               </div>
 
@@ -148,22 +154,22 @@ export function LoginPage() {
                 style={{ backgroundColor: '#D4A853' }}
               >
                 {loading ? (
-                  <><Loader2 className="w-4 h-4 animate-spin" /> Signing in...</>
+                  <><Loader2 className="w-4 h-4 animate-spin" />{t('login.signingIn')}</>
                 ) : (
-                  'Sign In'
+                  t('login.signIn')
                 )}
               </button>
             </form>
 
             {/* Hint */}
             <p className="text-center text-xs text-[#94A3B8] mt-6">
-              Demo: use any email with password ≥ 4 characters
+              {t('login.demoHint')}
             </p>
           </div>
         </div>
 
         <p className="text-center text-white/20 text-xs mt-6">
-          © 2026 PropEx. All rights reserved.
+          {t('login.footer')}
         </p>
       </div>
     </div>

@@ -1,13 +1,16 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useMemo } from 'react';
 import { useNavigate } from 'react-router';
+import { useTranslation } from 'react-i18next';
 import { Plus, TrendingUp, TrendingDown, ArrowRight, Clock } from 'lucide-react';
 import { AreaChart, Area, ResponsiveContainer } from 'recharts';
 import { useApp } from '../contexts/AppContext';
 import { StageBadge } from '../components/StageBadge';
 import { CreateTransactionModal } from '../components/CreateTransactionModal';
+import { relativeTimeFromNow } from '../../i18n/relativeTime';
+import { formatDateForLocale } from '../../i18n/formatDate';
 import {
-  STAGE_ORDER, STAGE_LABELS, STAGE_COLORS, SPARKLINE_DATA,
-  calculateCommission, formatCurrency, timeAgo, Transaction
+  STAGE_ORDER, STAGE_COLORS, SPARKLINE_DATA,
+  calculateCommission, formatCurrency, Transaction
 } from '../data/mockData';
 
 function useCountUp(target: number, duration = 1200) {
@@ -71,6 +74,7 @@ function MetricCard({ label, value, displayValue, trend, sparkData, color }: {
 }
 
 function TransactionCard({ transaction, onClick }: { transaction: Transaction; onClick: () => void }) {
+  const { t } = useTranslation();
   const { getAgent } = useApp();
   const listingAgent = getAgent(transaction.listingAgentId);
   const comm = calculateCommission(transaction);
@@ -86,7 +90,7 @@ function TransactionCard({ transaction, onClick }: { transaction: Transaction; o
           {transaction.propertyAddress.split(',')[0]}
         </p>
         <span className={`text-xs px-2 py-0.5 rounded-full font-medium flex-shrink-0 ${transaction.propertyType === 'sale' ? 'bg-blue-50 text-blue-600' : 'bg-purple-50 text-purple-600'}`}>
-          {transaction.propertyType}
+          {t(`propertyType.${transaction.propertyType}`)}
         </span>
       </div>
       <p className="text-[#64748B] text-xs mb-3 truncate">{transaction.propertyAddress.split(',').slice(1).join(',').trim()}</p>
@@ -120,21 +124,24 @@ function TransactionCard({ transaction, onClick }: { transaction: Transaction; o
 }
 
 export function DashboardPage() {
+  const { t, i18n } = useTranslation();
   const { transactions } = useApp();
   const navigate = useNavigate();
   const [showCreate, setShowCreate] = useState(false);
+
+  const formatDate = (d: string) => formatDateForLocale(d, i18n.language);
 
   const completed = transactions.filter(t => t.stage === 'completed');
   const active = transactions.filter(t => t.stage !== 'completed');
   const totalRevenue = completed.reduce((s, t) => s + t.transactionValue, 0);
   const pendingCommissions = active.reduce((s, t) => s + calculateCommission(t).agentTotal, 0);
 
-  const metrics = [
-    { label: 'Total Transactions', value: transactions.length, displayValue: String(transactions.length), trend: 12, sparkData: SPARKLINE_DATA.transactions, color: '#3B82F6' },
-    { label: 'Active Transactions', value: active.length, displayValue: String(active.length), trend: 8, sparkData: SPARKLINE_DATA.active, color: '#D4A853' },
-    { label: 'Total Revenue', value: totalRevenue, displayValue: `€${totalRevenue.toLocaleString()}`, trend: 24, sparkData: SPARKLINE_DATA.revenue, color: '#10B981' },
-    { label: 'Pending Commissions', value: pendingCommissions, displayValue: `€${pendingCommissions.toLocaleString()}`, trend: -5, sparkData: SPARKLINE_DATA.pending, color: '#8B5CF6' },
-  ];
+  const metrics = useMemo(() => [
+    { label: t('dashboard.metrics.totalTransactions'), value: transactions.length, displayValue: String(transactions.length), trend: 12, sparkData: SPARKLINE_DATA.transactions, color: '#3B82F6' },
+    { label: t('dashboard.metrics.activeTransactions'), value: active.length, displayValue: String(active.length), trend: 8, sparkData: SPARKLINE_DATA.active, color: '#D4A853' },
+    { label: t('dashboard.metrics.totalRevenue'), value: totalRevenue, displayValue: `€${totalRevenue.toLocaleString()}`, trend: 24, sparkData: SPARKLINE_DATA.revenue, color: '#10B981' },
+    { label: t('dashboard.metrics.pendingCommissions'), value: pendingCommissions, displayValue: `€${pendingCommissions.toLocaleString()}`, trend: -5, sparkData: SPARKLINE_DATA.pending, color: '#8B5CF6' },
+  ], [t, transactions.length, active.length, totalRevenue, pendingCommissions]);
 
   // Recent activity from all transactions
   const recentActivity = transactions
@@ -147,8 +154,8 @@ export function DashboardPage() {
       {/* Header */}
       <div className="flex items-center justify-between mb-8">
         <div>
-          <h1 className="text-[#0A1628]">Dashboard</h1>
-          <p className="text-[#64748B] text-sm mt-0.5">Overview of all active transactions and performance</p>
+          <h1 className="text-[#0A1628]">{t('dashboard.title')}</h1>
+          <p className="text-[#64748B] text-sm mt-0.5">{t('dashboard.subtitle')}</p>
         </div>
         <button
           onClick={() => setShowCreate(true)}
@@ -156,7 +163,7 @@ export function DashboardPage() {
           style={{ backgroundColor: '#D4A853' }}
         >
           <Plus className="w-4 h-4" />
-          <span className="hidden sm:inline">New Transaction</span>
+          <span className="hidden sm:inline">{t('dashboard.newTransaction')}</span>
         </button>
       </div>
 
@@ -171,12 +178,12 @@ export function DashboardPage() {
         {/* Pipeline Kanban */}
         <div className="flex-1 min-w-0">
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-[#0A1628]">Transaction Pipeline</h2>
+            <h2 className="text-[#0A1628]">{t('dashboard.pipeline')}</h2>
             <button
               onClick={() => navigate('/transactions')}
               className="flex items-center gap-1 text-sm text-[#64748B] hover:text-[#D4A853] transition-colors"
             >
-              View all <ArrowRight className="w-4 h-4" />
+              {t('dashboard.viewAll')} <ArrowRight className="w-4 h-4" />
             </button>
           </div>
           <div className="flex gap-4 overflow-x-auto pb-2">
@@ -187,7 +194,7 @@ export function DashboardPage() {
                 <div key={stage} className="flex-shrink-0 w-[260px]">
                   <div className="flex items-center gap-2 mb-3">
                     <div className="w-2 h-2 rounded-full" style={{ backgroundColor: colors.dot }} />
-                    <span className="text-sm font-semibold text-[#0A1628]">{STAGE_LABELS[stage]}</span>
+                    <span className="text-sm font-semibold text-[#0A1628]">{t(`stages.${stage}`)}</span>
                     <span
                       className="text-xs font-bold px-2 py-0.5 rounded-full ml-auto"
                       style={{ backgroundColor: colors.bg, color: colors.text }}
@@ -198,7 +205,7 @@ export function DashboardPage() {
                   <div className="space-y-3">
                     {stageTxns.length === 0 ? (
                       <div className="bg-white rounded-xl p-4 border border-dashed border-[#E2E8F0] text-center text-sm text-[#94A3B8]">
-                        No transactions
+                        {t('dashboard.noTransactions')}
                       </div>
                     ) : (
                       stageTxns.map(t => (
@@ -220,7 +227,7 @@ export function DashboardPage() {
         <div className="w-full xl:w-72 flex-shrink-0">
           <div className="flex items-center gap-2 mb-4">
             <Clock className="w-4 h-4 text-[#64748B]" />
-            <h2 className="text-[#0A1628]">Recent Activity</h2>
+            <h2 className="text-[#0A1628]">{t('dashboard.recentActivity')}</h2>
           </div>
           <div className="bg-white rounded-2xl border border-[#E2E8F0] shadow-[0_1px_3px_rgba(0,0,0,0.06)] overflow-hidden">
             <div className="divide-y divide-[#F1F5F9] max-h-[600px] overflow-y-auto">
@@ -244,7 +251,7 @@ export function DashboardPage() {
                   <div className="flex-1 min-w-0">
                     <p className="text-xs font-semibold text-[#0A1628] truncate">{activity.address}</p>
                     <p className="text-xs text-[#64748B] mt-0.5 leading-relaxed">{activity.description}</p>
-                    <p className="text-[10px] text-[#94A3B8] mt-1">{timeAgo(activity.timestamp)}</p>
+                    <p className="text-[10px] text-[#94A3B8] mt-1">{relativeTimeFromNow(activity.timestamp, t, formatDate)}</p>
                   </div>
                 </div>
               ))}

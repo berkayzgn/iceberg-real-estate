@@ -1,4 +1,5 @@
-import { Stage, STAGE_LABELS, STAGE_COLORS } from '../data/mockData';
+import { useTranslation } from 'react-i18next';
+import { Stage, STAGE_COLORS } from '../data/mockData';
 
 interface StageBadgeProps {
   stage: Stage;
@@ -6,8 +7,9 @@ interface StageBadgeProps {
 }
 
 export function StageBadge({ stage, size = 'md' }: StageBadgeProps) {
+  const { t } = useTranslation();
   const colors = STAGE_COLORS[stage];
-  const label = STAGE_LABELS[stage];
+  const label = t(`stages.${stage}`);
   const padding = size === 'sm' ? 'px-2 py-0.5 text-xs' : 'px-3 py-1 text-xs';
 
   return (

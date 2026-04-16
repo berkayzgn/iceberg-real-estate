@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer } from 'recharts';
 import { formatCurrency } from '../data/mockData';
 
@@ -18,15 +19,16 @@ export function CommissionSplit({
   sellingAgentName,
   isSameAgent,
 }: CommissionSplitProps) {
+  const { t } = useTranslation();
   const data = isSameAgent
     ? [
-        { name: 'Agency', value: company, color: '#0A1628' },
+        { name: t('commission.agency'), value: company, color: '#0A1628' },
         { name: listingAgentName, value: listingAgent, color: '#D4A853' },
       ]
     : [
-        { name: 'Agency', value: company, color: '#0A1628' },
-        { name: `${listingAgentName} (Listing)`, value: listingAgent, color: '#D4A853' },
-        { name: `${sellingAgentName} (Selling)`, value: sellingAgent, color: '#F59E0B' },
+        { name: t('commission.agency'), value: company, color: '#0A1628' },
+        { name: t('commission.listingRole', { name: listingAgentName }), value: listingAgent, color: '#D4A853' },
+        { name: t('commission.sellingRole', { name: sellingAgentName }), value: sellingAgent, color: '#F59E0B' },
       ];
 
   const total = company + listingAgent + sellingAgent;
@@ -56,7 +58,7 @@ export function CommissionSplit({
           </PieChart>
         </ResponsiveContainer>
         <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-          <span className="text-xs text-[#64748B]">Total</span>
+          <span className="text-xs text-[#64748B]">{t('commission.total')}</span>
           <span className="text-sm font-semibold text-[#0A1628]">{formatCurrency(total)}</span>
         </div>
       </div>

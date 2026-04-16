@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router';
+import { useTranslation } from 'react-i18next';
 import { ArrowLeft, Mail, Phone, TrendingUp, Award, ArrowRight } from 'lucide-react';
 import {
   LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer,
@@ -8,7 +9,14 @@ import {
 import { useApp } from '../contexts/AppContext';
 import { AgentAvatar, AgentChip } from '../components/AgentChip';
 import { StageBadge } from '../components/StageBadge';
-import { formatCurrency, formatDate, getAgentStats, calculateCommission } from '../data/mockData';
+import { formatDateForLocale } from '../../i18n/formatDate';
+import { formatCurrency, getAgentStats, calculateCommission } from '../data/mockData';
+
+const PIE_ROLE_KEYS = {
+  listing: 'agents.roleListing',
+  selling: 'agents.roleSelling',
+  dual: 'agents.roleDual',
+} as const;
 
 const MONTHS = ['Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec', 'Jan', 'Feb', 'Mar', 'Apr'];
 const BASE_EARNINGS: Record<string, number[]> = {
@@ -20,6 +28,7 @@ const BASE_EARNINGS: Record<string, number[]> = {
 };
 
 function AgentCard({ agentId, onClick }: { agentId: string; onClick: () => void }) {
+  const { t } = useTranslation();
   const { getAgent, transactions } = useApp();
   const agent = getAgent(agentId);
   if (!agent) return null;
@@ -41,17 +50,17 @@ function AgentCard({ agentId, onClick }: { agentId: string; onClick: () => void 
 
       <div className="grid grid-cols-2 gap-3">
         <div className="p-3 rounded-xl bg-[#FAFBFC] border border-[#E2E8F0]">
-          <p className="text-xs text-[#64748B] mb-1">Transactions</p>
+          <p className="text-xs text-[#64748B] mb-1">{t('agents.transactions')}</p>
           <p className="text-lg font-bold text-[#0A1628]">{stats.totalTransactions}</p>
         </div>
         <div className="p-3 rounded-xl bg-[#FAFBFC] border border-[#E2E8F0]">
-          <p className="text-xs text-[#64748B] mb-1">Total Earned</p>
+          <p className="text-xs text-[#64748B] mb-1">{t('agents.totalEarned')}</p>
           <p className="text-lg font-bold text-[#D4A853]">{formatCurrency(stats.totalEarnings)}</p>
         </div>
       </div>
 
       <div className="mt-4 pt-4 border-t border-[#F1F5F9] flex items-center justify-between">
-        <span className="text-xs text-[#94A3B8]">Since {agent.joinDate}</span>
+        <span className="text-xs text-[#94A3B8]">{t('common.since', { date: agent.joinDate })}</span>
         <ArrowRight className="w-4 h-4 text-[#CBD5E1] group-hover:text-[#D4A853] transition-colors" />
       </div>
     </div>
@@ -59,8 +68,10 @@ function AgentCard({ agentId, onClick }: { agentId: string; onClick: () => void 
 }
 
 function AgentDetailView({ agentId, onBack }: { agentId: string; onBack: () => void }) {
+  const { t, i18n } = useTranslation();
   const { getAgent, transactions } = useApp();
   const navigate = useNavigate();
+  const formatDate = (d: string) => formatDateForLocale(d, i18n.language);
   const agent = getAgent(agentId);
   if (!agent) return null;
 
@@ -79,9 +90,9 @@ function AgentDetailView({ agentId, onBack }: { agentId: string; onBack: () => v
   const dualCount = agentTxns.filter(t => t.listingAgentId === agentId && t.sellingAgentId === agentId).length;
 
   const roleData = [
-    { name: 'Listing', value: listingCount, color: '#0A1628' },
-    { name: 'Selling', value: sellingCount, color: '#D4A853' },
-    { name: 'Dual', value: dualCount, color: '#10B981' },
+    { key: 'listing' as const, name: t(PIE_ROLE_KEYS.listing), value: listingCount, color: '#0A1628' },
+    { key: 'selling' as const, name: t(PIE_ROLE_KEYS.selling), value: sellingCount, color: '#D4A853' },
+    { key: 'dual' as const, name: t(PIE_ROLE_KEYS.dual), value: dualCount, color: '#10B981' },
   ].filter(d => d.value > 0);
 
   return (
@@ -91,7 +102,7 @@ function AgentDetailView({ agentId, onBack }: { agentId: string; onBack: () => v
         className="flex items-center gap-2 text-sm text-[#64748B] hover:text-[#0A1628] transition-colors mb-6 group"
       >
         <ArrowLeft className="w-4 h-4 group-hover:-translate-x-0.5 transition-transform" />
-        Back to Agents
+        {t('agents.back')}
       </button>
 
       {/* Agent Profile */}
@@ -119,20 +130,20 @@ function AgentDetailView({ agentId, onBack }: { agentId: string; onBack: () => v
             <div className="flex gap-4 mt-4 flex-wrap text-sm text-[#64748B]">
               <span>{agent.email}</span>
               <span>{agent.phone}</span>
-              <span>Joined {agent.joinDate}</span>
+              <span>{t('common.joined', { date: agent.joinDate })}</span>
             </div>
           </div>
         </div>
 
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 border-t border-[#F1F5F9] pt-5">
           {[
-            { label: 'Total Transactions', value: stats.totalTransactions, color: '#0A1628' },
-            { label: 'Completed', value: stats.completedTransactions, color: '#10B981' },
-            { label: 'Total Earned', value: formatCurrency(stats.totalEarnings), color: '#D4A853' },
-            { label: 'Dual Agent', value: dualCount, color: '#8B5CF6' },
+            { labelKey: 'agents.statsTotalTransactions' as const, value: stats.totalTransactions, color: '#0A1628' },
+            { labelKey: 'agents.statsCompleted' as const, value: stats.completedTransactions, color: '#10B981' },
+            { labelKey: 'agents.statsTotalEarned' as const, value: formatCurrency(stats.totalEarnings), color: '#D4A853' },
+            { labelKey: 'agents.statsDualAgent' as const, value: dualCount, color: '#8B5CF6' },
           ].map(item => (
-            <div key={item.label} className="text-center p-3 rounded-xl bg-[#FAFBFC] border border-[#E2E8F0]">
-              <p className="text-xs text-[#64748B] mb-1">{item.label}</p>
+            <div key={item.labelKey} className="text-center p-3 rounded-xl bg-[#FAFBFC] border border-[#E2E8F0]">
+              <p className="text-xs text-[#64748B] mb-1">{t(item.labelKey)}</p>
               <p className="text-lg font-bold" style={{ color: item.color }}>{item.value}</p>
             </div>
           ))}
@@ -144,14 +155,14 @@ function AgentDetailView({ agentId, onBack }: { agentId: string; onBack: () => v
         <div className="lg:col-span-2 bg-white rounded-2xl border border-[#E2E8F0] shadow-[0_1px_3px_rgba(0,0,0,0.06)] p-6">
           <div className="flex items-center gap-2 mb-5">
             <TrendingUp className="w-4 h-4 text-[#D4A853]" />
-            <h3 className="text-[#0A1628]">Commission Earnings (Last 10 Months)</h3>
+            <h3 className="text-[#0A1628]">{t('agents.chartTitle')}</h3>
           </div>
           <ResponsiveContainer width="100%" height={180}>
             <LineChart data={earningsData} margin={{ top: 5, right: 5, bottom: 5, left: 5 }}>
               <XAxis dataKey="month" tick={{ fontSize: 11, fill: '#94A3B8' }} axisLine={false} tickLine={false} />
               <YAxis tick={{ fontSize: 11, fill: '#94A3B8' }} axisLine={false} tickLine={false} tickFormatter={v => `€${(v / 1000).toFixed(0)}k`} />
               <Tooltip
-                formatter={(v: number) => [formatCurrency(v), 'Earnings']}
+                formatter={(v: number) => [formatCurrency(v), t('agents.chartTooltipEarnings')]}
                 contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.1)', fontSize: '12px' }}
               />
               <Line type="monotone" dataKey="earnings" stroke="#D4A853" strokeWidth={2} dot={{ fill: '#D4A853', r: 3, strokeWidth: 0 }} activeDot={{ r: 5 }} />
@@ -163,22 +174,22 @@ function AgentDetailView({ agentId, onBack }: { agentId: string; onBack: () => v
         <div className="bg-white rounded-2xl border border-[#E2E8F0] shadow-[0_1px_3px_rgba(0,0,0,0.06)] p-6">
           <div className="flex items-center gap-2 mb-5">
             <Award className="w-4 h-4 text-[#D4A853]" />
-            <h3 className="text-[#0A1628]">Role Distribution</h3>
+            <h3 className="text-[#0A1628]">{t('agents.roleDistribution')}</h3>
           </div>
           <ResponsiveContainer width="100%" height={140}>
             <PieChart>
               <Pie data={roleData} cx="50%" cy="50%" outerRadius={55} innerRadius={35} paddingAngle={3} dataKey="value">
-                {roleData.map((entry, i) => <Cell key={i} fill={entry.color} stroke="none" />)}
+                {roleData.map((entry, i) => <Cell key={entry.key} fill={entry.color} stroke="none" />)}
               </Pie>
-              <Tooltip formatter={(v: number) => [v, 'Transactions']} contentStyle={{ borderRadius: '8px', border: 'none', fontSize: '12px' }} />
+              <Tooltip formatter={(v: number) => [v, t('agents.roleTooltipTransactions')]} contentStyle={{ borderRadius: '8px', border: 'none', fontSize: '12px' }} />
             </PieChart>
           </ResponsiveContainer>
           <div className="space-y-2 mt-2">
             {roleData.map(item => (
-              <div key={item.name} className="flex items-center justify-between text-xs">
+              <div key={item.key} className="flex items-center justify-between text-xs">
                 <div className="flex items-center gap-2">
                   <div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: item.color }} />
-                  <span className="text-[#64748B]">{item.name}</span>
+                  <span className="text-[#64748B]">{t(PIE_ROLE_KEYS[item.key])}</span>
                 </div>
                 <span className="font-semibold text-[#0A1628]">{item.value}</span>
               </div>
@@ -189,9 +200,9 @@ function AgentDetailView({ agentId, onBack }: { agentId: string; onBack: () => v
 
       {/* Transaction History */}
       <div className="bg-white rounded-2xl border border-[#E2E8F0] shadow-[0_1px_3px_rgba(0,0,0,0.06)] p-6">
-        <h3 className="text-[#0A1628] mb-4">Transaction History</h3>
+        <h3 className="text-[#0A1628] mb-4">{t('agents.transactionHistory')}</h3>
         {agentTxns.length === 0 ? (
-          <p className="text-sm text-[#94A3B8] text-center py-8">No transactions yet.</p>
+          <p className="text-sm text-[#94A3B8] text-center py-8">{t('agents.noTransactionsYet')}</p>
         ) : (
           <div className="divide-y divide-[#F1F5F9]">
             {agentTxns.map(t => {
@@ -210,7 +221,7 @@ function AgentDetailView({ agentId, onBack }: { agentId: string; onBack: () => v
                     <div className="flex items-center gap-2 mt-0.5">
                       <span className="text-xs text-[#94A3B8]">{formatDate(t.date)}</span>
                       <span className={`text-xs px-1.5 py-0.5 rounded-full font-medium ${isDual ? 'bg-purple-50 text-purple-600' : isListing ? 'bg-blue-50 text-blue-600' : 'bg-amber-50 text-amber-700'}`}>
-                        {isDual ? 'Dual' : isListing ? 'Listing' : 'Selling'}
+                        {isDual ? t('agents.historyBadgeDual') : isListing ? t('agents.historyBadgeListing') : t('agents.historyBadgeSelling')}
                       </span>
                     </div>
                   </div>
@@ -230,6 +241,7 @@ function AgentDetailView({ agentId, onBack }: { agentId: string; onBack: () => v
 }
 
 export function AgentsPage() {
+  const { t } = useTranslation();
   const { agents } = useApp();
   const [selectedAgentId, setSelectedAgentId] = useState<string | null>(null);
 
@@ -244,8 +256,8 @@ export function AgentsPage() {
   return (
     <div className="p-6 lg:p-8 max-w-[1400px] mx-auto">
       <div className="mb-8">
-        <h1 className="text-[#0A1628]">Agents</h1>
-        <p className="text-[#64748B] text-sm mt-0.5">{agents.length} estate agents in your team</p>
+        <h1 className="text-[#0A1628]">{t('agents.title')}</h1>
+        <p className="text-[#64748B] text-sm mt-0.5">{t('agents.subtitle', { count: agents.length })}</p>
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">

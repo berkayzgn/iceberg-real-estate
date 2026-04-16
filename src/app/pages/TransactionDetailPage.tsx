@@ -1,14 +1,17 @@
 import { useState } from 'react';
 import { useParams, useNavigate } from 'react-router';
+import { useTranslation } from 'react-i18next';
 import { ArrowLeft, ChevronRight, Home, Building2, Calendar, CheckCircle, AlertCircle } from 'lucide-react';
 import { useApp } from '../contexts/AppContext';
 import { ProgressStepper } from '../components/ProgressStepper';
 import { CommissionSplit } from '../components/CommissionSplit';
 import { AgentChip } from '../components/AgentChip';
 import { StageBadge } from '../components/StageBadge';
+import { relativeTimeFromNow } from '../../i18n/relativeTime';
+import { formatDateForLocale } from '../../i18n/formatDate';
 import {
-  calculateCommission, formatCurrency, formatDate, timeAgo,
-  getNextStage, STAGE_LABELS, STAGE_COLORS
+  calculateCommission, formatCurrency,
+  getNextStage, STAGE_COLORS
 } from '../data/mockData';
 import { toast } from 'sonner';
 
@@ -19,6 +22,7 @@ function ConfirmModal({ open, onClose, onConfirm, currentStage, nextStage }: {
   currentStage: string;
   nextStage: string;
 }) {
+  const { t } = useTranslation();
   if (!open) return null;
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
@@ -28,30 +32,30 @@ function ConfirmModal({ open, onClose, onConfirm, currentStage, nextStage }: {
           <div className="w-10 h-10 rounded-full bg-amber-50 flex items-center justify-center">
             <AlertCircle className="w-5 h-5 text-amber-500" />
           </div>
-          <h3 className="text-[#0A1628]">Advance Stage</h3>
+          <h3 className="text-[#0A1628]">{t('transactionDetail.confirmAdvanceTitle')}</h3>
         </div>
         <p className="text-sm text-[#64748B] mb-2">
-          You are about to advance this transaction from:
+          {t('transactionDetail.confirmAdvanceBody')}
         </p>
         <div className="flex items-center gap-3 p-3 bg-[#FAFBFC] rounded-xl mb-6 border border-[#E2E8F0]">
           <span className="text-sm font-semibold text-[#0A1628]">{currentStage}</span>
           <ChevronRight className="w-4 h-4 text-[#94A3B8]" />
           <span className="text-sm font-semibold" style={{ color: '#D4A853' }}>{nextStage}</span>
         </div>
-        <p className="text-xs text-[#94A3B8] mb-5">This action will be recorded in the activity log and cannot be undone.</p>
+        <p className="text-xs text-[#94A3B8] mb-5">{t('transactionDetail.confirmAdvanceWarning')}</p>
         <div className="flex gap-3">
           <button
             onClick={onClose}
             className="flex-1 py-2.5 rounded-xl text-sm font-medium border border-[#E2E8F0] text-[#64748B] hover:bg-[#F1F5F9] transition-colors"
           >
-            Cancel
+            {t('common.cancel')}
           </button>
           <button
             onClick={onConfirm}
             className="flex-1 py-2.5 rounded-xl text-sm font-semibold text-white transition-all hover:opacity-90"
             style={{ backgroundColor: '#D4A853' }}
           >
-            Confirm Advance
+            {t('transactionDetail.confirmAdvance')}
           </button>
         </div>
       </div>
@@ -60,19 +64,22 @@ function ConfirmModal({ open, onClose, onConfirm, currentStage, nextStage }: {
 }
 
 export function TransactionDetailPage() {
+  const { t, i18n } = useTranslation();
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { getTransaction, getAgent, advanceStage } = useApp();
   const [showConfirm, setShowConfirm] = useState(false);
+
+  const formatDate = (d: string) => formatDateForLocale(d, i18n.language);
 
   const transaction = getTransaction(id!);
   if (!transaction) {
     return (
       <div className="flex flex-col items-center justify-center min-h-screen gap-4">
         <AlertCircle className="w-12 h-12 text-[#CBD5E1]" />
-        <p className="text-[#64748B]">Transaction not found.</p>
+        <p className="text-[#64748B]">{t('transactionDetail.notFound')}</p>
         <button onClick={() => navigate('/transactions')} className="text-[#D4A853] font-medium">
-          Back to Transactions
+          {t('transactionDetail.backToList')}
         </button>
       </div>
     );
@@ -86,9 +93,16 @@ export function TransactionDetailPage() {
   const stageColor = STAGE_COLORS[transaction.stage];
 
   function handleAdvance() {
+    const toStage = getNextStage(transaction!.stage);
     advanceStage(transaction!.id);
     setShowConfirm(false);
-    toast.success(`Stage advanced to ${STAGE_LABELS[getNextStage(transaction!.stage)!] || 'Completed'}.`);
+    if (toStage) {
+      toast.success(
+        toStage === 'completed'
+          ? t('transactionDetail.toastStageCompleted')
+          : t('transactionDetail.toastStageAdvanced', { stage: t(`stages.${toStage}`) })
+      );
+    }
   }
 
   return (
@@ -99,7 +113,7 @@ export function TransactionDetailPage() {
         className="flex items-center gap-2 text-sm text-[#64748B] hover:text-[#0A1628] transition-colors mb-6 group"
       >
         <ArrowLeft className="w-4 h-4 group-hover:-translate-x-0.5 transition-transform" />
-        Back to Transactions
+        {t('transactionDetail.backToList')}
       </button>
 
       {/* Header */}
@@ -127,9 +141,9 @@ export function TransactionDetailPage() {
                   <Calendar className="w-3.5 h-3.5" />
                   {formatDate(transaction.date)}
                 </span>
-                <span className="text-xs text-[#64748B]">Ref: {transaction.id}</span>
-                <span className={`text-xs px-2 py-0.5 rounded-full font-medium capitalize ${transaction.propertyType === 'sale' ? 'bg-blue-50 text-blue-600' : 'bg-purple-50 text-purple-600'}`}>
-                  {transaction.propertyType}
+                <span className="text-xs text-[#64748B]">{t('common.ref')}: {transaction.id}</span>
+                <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${transaction.propertyType === 'sale' ? 'bg-blue-50 text-blue-600' : 'bg-purple-50 text-purple-600'}`}>
+                  {t(`propertyType.${transaction.propertyType}`)}
                 </span>
               </div>
             </div>
@@ -138,7 +152,7 @@ export function TransactionDetailPage() {
           {/* Value & CTA */}
           <div className="flex flex-col items-start lg:items-end gap-3">
             <div>
-              <p className="text-xs text-[#64748B] text-right">Total Service Fee</p>
+              <p className="text-xs text-[#64748B] text-right">{t('transactionDetail.totalServiceFee')}</p>
               <p className="text-2xl font-bold text-[#0A1628]" style={{ fontFamily: 'Plus Jakarta Sans, sans-serif' }}>
                 {formatCurrency(transaction.transactionValue)}
               </p>
@@ -149,13 +163,13 @@ export function TransactionDetailPage() {
                 className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold text-white transition-all hover:opacity-90 active:scale-95 shadow-md"
                 style={{ backgroundColor: '#D4A853' }}
               >
-                Advance to {STAGE_LABELS[nextStage]}
+                {t('transactionDetail.advanceTo', { stage: t(`stages.${nextStage}`) })}
                 <ChevronRight className="w-4 h-4" />
               </button>
             ) : (
               <div className="flex items-center gap-2 text-green-600 text-sm font-semibold">
                 <CheckCircle className="w-4 h-4" />
-                Transaction Completed
+                {t('transactionDetail.completed')}
               </div>
             )}
           </div>
@@ -170,31 +184,31 @@ export function TransactionDetailPage() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
         {/* Commission Split */}
         <div className="bg-white rounded-2xl border border-[#E2E8F0] shadow-[0_1px_3px_rgba(0,0,0,0.06)] p-6">
-          <h3 className="text-[#0A1628] mb-5">Commission Breakdown</h3>
+          <h3 className="text-[#0A1628] mb-5">{t('transactionDetail.commissionBreakdown')}</h3>
           <CommissionSplit
             company={comm.company}
             listingAgent={comm.listingAgent}
             sellingAgent={comm.sellingAgent}
-            listingAgentName={listingAgent?.name ?? 'Listing Agent'}
-            sellingAgentName={sellingAgent?.name ?? 'Selling Agent'}
+            listingAgentName={listingAgent?.name ?? t('transactionDetail.fallbackListingAgent')}
+            sellingAgentName={sellingAgent?.name ?? t('transactionDetail.fallbackSellingAgent')}
             isSameAgent={isSameAgent}
           />
         </div>
 
         {/* Agent Assignments */}
         <div className="bg-white rounded-2xl border border-[#E2E8F0] shadow-[0_1px_3px_rgba(0,0,0,0.06)] p-6">
-          <h3 className="text-[#0A1628] mb-5">Agent Assignments</h3>
+          <h3 className="text-[#0A1628] mb-5">{t('transactionDetail.agentAssignments')}</h3>
           <div className="space-y-4">
             {listingAgent && (
               <div className="p-4 rounded-xl bg-[#FAFBFC] border border-[#E2E8F0]">
                 <div className="flex items-center justify-between mb-3">
-                  <span className="text-xs font-semibold text-[#64748B] uppercase tracking-wider">Listing Agent</span>
-                  <span className="text-xs px-2 py-0.5 rounded-full bg-blue-50 text-blue-600 font-medium">Listing</span>
+                  <span className="text-xs font-semibold text-[#64748B] uppercase tracking-wider">{t('transactions.listingAgent')}</span>
+                  <span className="text-xs px-2 py-0.5 rounded-full bg-blue-50 text-blue-600 font-medium">{t('transactionDetail.listing')}</span>
                 </div>
                 <AgentChip agent={listingAgent} role={listingAgent.title} />
                 <div className="mt-3 pt-3 border-t border-[#E2E8F0]">
                   <div className="flex items-center justify-between">
-                    <span className="text-xs text-[#64748B]">Earnings</span>
+                    <span className="text-xs text-[#64748B]">{t('transactionDetail.earnings')}</span>
                     <span className="text-sm font-bold text-[#D4A853]">{formatCurrency(comm.listingAgent)}</span>
                   </div>
                 </div>
@@ -204,13 +218,13 @@ export function TransactionDetailPage() {
             {!isSameAgent && sellingAgent && (
               <div className="p-4 rounded-xl bg-[#FAFBFC] border border-[#E2E8F0]">
                 <div className="flex items-center justify-between mb-3">
-                  <span className="text-xs font-semibold text-[#64748B] uppercase tracking-wider">Selling Agent</span>
-                  <span className="text-xs px-2 py-0.5 rounded-full bg-amber-50 text-amber-700 font-medium">Selling</span>
+                  <span className="text-xs font-semibold text-[#64748B] uppercase tracking-wider">{t('transactions.sellingAgent')}</span>
+                  <span className="text-xs px-2 py-0.5 rounded-full bg-amber-50 text-amber-700 font-medium">{t('transactionDetail.selling')}</span>
                 </div>
                 <AgentChip agent={sellingAgent} role={sellingAgent.title} />
                 <div className="mt-3 pt-3 border-t border-[#E2E8F0]">
                   <div className="flex items-center justify-between">
-                    <span className="text-xs text-[#64748B]">Earnings</span>
+                    <span className="text-xs text-[#64748B]">{t('transactionDetail.earnings')}</span>
                     <span className="text-sm font-bold text-[#D4A853]">{formatCurrency(comm.sellingAgent)}</span>
                   </div>
                 </div>
@@ -220,7 +234,7 @@ export function TransactionDetailPage() {
             {isSameAgent && (
               <div className="p-3 rounded-xl bg-amber-50 border border-amber-100">
                 <p className="text-xs text-amber-700 font-medium">
-                  Same agent for both listing & selling — receives 100% of agent share ({formatCurrency(comm.listingAgent)}).
+                  {t('transactionDetail.sameAgentNote', { amount: formatCurrency(comm.listingAgent) })}
                 </p>
               </div>
             )}
@@ -228,13 +242,13 @@ export function TransactionDetailPage() {
             {/* Agency share */}
             <div className="p-4 rounded-xl border border-[#E2E8F0]" style={{ backgroundColor: '#0A1628' }}>
               <div className="flex items-center justify-between mb-2">
-                <span className="text-xs font-semibold text-white/60 uppercase tracking-wider">Agency Share</span>
+                <span className="text-xs font-semibold text-white/60 uppercase tracking-wider">{t('transactionDetail.agencyShare')}</span>
                 <span className="text-xs px-2 py-0.5 rounded-full bg-white/10 text-white/80 font-medium">50%</span>
               </div>
               <p className="text-sm font-bold text-white">PropEx Agency</p>
               <div className="mt-3 pt-3 border-t border-white/10">
                 <div className="flex items-center justify-between">
-                  <span className="text-xs text-white/60">Revenue</span>
+                  <span className="text-xs text-white/60">{t('transactionDetail.revenue')}</span>
                   <span className="text-sm font-bold text-[#D4A853]">{formatCurrency(comm.company)}</span>
                 </div>
               </div>
@@ -244,7 +258,7 @@ export function TransactionDetailPage() {
 
         {/* Activity Log */}
         <div className="bg-white rounded-2xl border border-[#E2E8F0] shadow-[0_1px_3px_rgba(0,0,0,0.06)] p-6">
-          <h3 className="text-[#0A1628] mb-5">Activity Log</h3>
+          <h3 className="text-[#0A1628] mb-5">{t('transactionDetail.activityLog')}</h3>
           <div className="relative">
             <div className="absolute left-3.5 top-0 bottom-0 w-px bg-[#E2E8F0]" />
             <div className="space-y-5">
@@ -269,7 +283,7 @@ export function TransactionDetailPage() {
                         <StageBadge stage={entry.toStage} size="sm" />
                       </div>
                     )}
-                    <p className="text-xs text-[#94A3B8] mt-1">{timeAgo(entry.timestamp)}</p>
+                    <p className="text-xs text-[#94A3B8] mt-1">{relativeTimeFromNow(entry.timestamp, t, formatDate)}</p>
                   </div>
                 </div>
               ))}
@@ -282,8 +296,8 @@ export function TransactionDetailPage() {
         open={showConfirm}
         onClose={() => setShowConfirm(false)}
         onConfirm={handleAdvance}
-        currentStage={STAGE_LABELS[transaction.stage]}
-        nextStage={nextStage ? STAGE_LABELS[nextStage] : ''}
+        currentStage={t(`stages.${transaction.stage}`)}
+        nextStage={nextStage ? t(`stages.${nextStage}`) : ''}
       />
     </div>
   );

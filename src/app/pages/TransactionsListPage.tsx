@@ -1,17 +1,21 @@
 import { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router';
+import { useTranslation } from 'react-i18next';
 import { Search, SlidersHorizontal, ArrowUpDown, FileX, ChevronRight } from 'lucide-react';
 import { useApp } from '../contexts/AppContext';
 import { StageBadge } from '../components/StageBadge';
 import { AgentChip } from '../components/AgentChip';
-import { Stage, STAGE_ORDER, STAGE_LABELS, calculateCommission, formatCurrency, formatDate } from '../data/mockData';
+import { formatDateForLocale } from '../../i18n/formatDate';
+import { Stage, STAGE_ORDER, calculateCommission, formatCurrency } from '../data/mockData';
 
 type SortKey = 'date' | 'transactionValue' | 'stage';
 type SortDir = 'asc' | 'desc';
 
 export function TransactionsListPage() {
+  const { t, i18n } = useTranslation();
   const { transactions, agents, getAgent } = useApp();
   const navigate = useNavigate();
+  const formatDate = (d: string) => formatDateForLocale(d, i18n.language);
 
   const [search, setSearch] = useState('');
   const [stageFilter, setStageFilter] = useState<Stage | 'all'>('all');
@@ -43,13 +47,14 @@ export function TransactionsListPage() {
       });
   }, [transactions, search, stageFilter, agentFilter, typeFilter, sortKey, sortDir]);
 
-  const SortButton = ({ label, key }: { label: string; key: SortKey }) => (
+  const SortButton = ({ label, sortKey: sk }: { label: string; sortKey: SortKey }) => (
     <button
-      onClick={() => toggleSort(key)}
+      type="button"
+      onClick={() => toggleSort(sk)}
       className="flex items-center gap-1 text-xs font-semibold text-[#64748B] hover:text-[#0A1628] transition-colors group"
     >
       {label}
-      <ArrowUpDown className={`w-3 h-3 transition-colors ${sortKey === key ? 'text-[#D4A853]' : 'text-[#CBD5E1]'}`} />
+      <ArrowUpDown className={`w-3 h-3 transition-colors ${sortKey === sk ? 'text-[#D4A853]' : 'text-[#CBD5E1]'}`} />
     </button>
   );
 
@@ -57,8 +62,8 @@ export function TransactionsListPage() {
     <div className="p-6 lg:p-8 max-w-[1400px] mx-auto">
       {/* Header */}
       <div className="mb-6">
-        <h1 className="text-[#0A1628]">Transactions</h1>
-        <p className="text-[#64748B] text-sm mt-0.5">{transactions.length} total transactions</p>
+        <h1 className="text-[#0A1628]">{t('transactions.title')}</h1>
+        <p className="text-[#64748B] text-sm mt-0.5">{t('transactions.totalCount', { count: transactions.length })}</p>
       </div>
 
       {/* Filter Bar */}
@@ -69,7 +74,7 @@ export function TransactionsListPage() {
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#94A3B8]" />
             <input
               className="w-full pl-9 pr-4 py-2 rounded-lg border border-[#E2E8F0] text-sm text-[#0A1628] placeholder-[#94A3B8] bg-[#FAFBFC] focus:outline-none focus:border-[#D4A853] focus:ring-2 focus:ring-[#D4A853]/20 transition-all"
-              placeholder="Search by address or ID..."
+              placeholder={t('transactions.searchPlaceholder')}
               value={search}
               onChange={e => setSearch(e.target.value)}
             />
@@ -83,8 +88,8 @@ export function TransactionsListPage() {
               value={stageFilter}
               onChange={e => setStageFilter(e.target.value as Stage | 'all')}
             >
-              <option value="all">All Stages</option>
-              {STAGE_ORDER.map(s => <option key={s} value={s}>{STAGE_LABELS[s]}</option>)}
+              <option value="all">{t('transactions.allStages')}</option>
+              {STAGE_ORDER.map(s => <option key={s} value={s}>{t(`stages.${s}`)}</option>)}
             </select>
           </div>
 
@@ -94,7 +99,7 @@ export function TransactionsListPage() {
             value={agentFilter}
             onChange={e => setAgentFilter(e.target.value)}
           >
-            <option value="all">All Agents</option>
+            <option value="all">{t('transactions.allAgents')}</option>
             {agents.map(a => <option key={a.id} value={a.id}>{a.name}</option>)}
           </select>
 
@@ -104,9 +109,9 @@ export function TransactionsListPage() {
               <button
                 key={type}
                 onClick={() => setTypeFilter(type)}
-                className={`px-3 py-2 capitalize transition-colors ${typeFilter === type ? 'bg-[#0A1628] text-white' : 'text-[#64748B] hover:bg-[#F1F5F9]'}`}
+                className={`px-3 py-2 transition-colors ${typeFilter === type ? 'bg-[#0A1628] text-white' : 'text-[#64748B] hover:bg-[#F1F5F9]'}`}
               >
-                {type}
+                {type === 'all' ? t('common.all') : t(`propertyType.${type}`)}
               </button>
             ))}
           </div>
@@ -120,14 +125,14 @@ export function TransactionsListPage() {
             <FileX className="w-8 h-8 text-[#CBD5E1]" />
           </div>
           <div className="text-center">
-            <h3 className="text-[#0A1628]">No transactions found</h3>
-            <p className="text-sm text-[#64748B] mt-1">Try adjusting your filters or search criteria.</p>
+            <h3 className="text-[#0A1628]">{t('transactions.noResultsTitle')}</h3>
+            <p className="text-sm text-[#64748B] mt-1">{t('transactions.noResultsHint')}</p>
           </div>
           <button
             onClick={() => { setSearch(''); setStageFilter('all'); setAgentFilter('all'); setTypeFilter('all'); }}
             className="px-4 py-2 rounded-lg text-sm font-medium border border-[#E2E8F0] text-[#64748B] hover:bg-[#F1F5F9] transition-colors"
           >
-            Clear filters
+            {t('transactions.clearFilters')}
           </button>
         </div>
       ) : (
@@ -138,66 +143,66 @@ export function TransactionsListPage() {
               <thead>
                 <tr className="border-b border-[#F1F5F9] bg-[#FAFBFC]">
                   <th className="text-left px-5 py-3.5">
-                    <span className="text-xs font-semibold text-[#64748B] uppercase tracking-wider">Property</span>
+                    <span className="text-xs font-semibold text-[#64748B] uppercase tracking-wider">{t('transactions.property')}</span>
                   </th>
                   <th className="text-left px-4 py-3.5">
-                    <SortButton label="Value" key="transactionValue" />
+                    <SortButton label={t('transactions.value')} sortKey="transactionValue" />
                   </th>
                   <th className="text-left px-4 py-3.5">
-                    <SortButton label="Stage" key="stage" />
+                    <SortButton label={t('transactions.stage')} sortKey="stage" />
                   </th>
                   <th className="text-left px-4 py-3.5">
-                    <span className="text-xs font-semibold text-[#64748B] uppercase tracking-wider">Listing Agent</span>
+                    <span className="text-xs font-semibold text-[#64748B] uppercase tracking-wider">{t('transactions.listingAgent')}</span>
                   </th>
                   <th className="text-left px-4 py-3.5">
-                    <span className="text-xs font-semibold text-[#64748B] uppercase tracking-wider">Selling Agent</span>
+                    <span className="text-xs font-semibold text-[#64748B] uppercase tracking-wider">{t('transactions.sellingAgent')}</span>
                   </th>
                   <th className="text-left px-4 py-3.5">
-                    <span className="text-xs font-semibold text-[#64748B] uppercase tracking-wider">Commission</span>
+                    <span className="text-xs font-semibold text-[#64748B] uppercase tracking-wider">{t('transactions.commission')}</span>
                   </th>
                   <th className="text-left px-4 py-3.5">
-                    <SortButton label="Date" key="date" />
+                    <SortButton label={t('transactions.date')} sortKey="date" />
                   </th>
                   <th className="px-4 py-3.5" />
                 </tr>
               </thead>
               <tbody className="divide-y divide-[#F8FAFC]">
-                {filtered.map(t => {
-                  const la = getAgent(t.listingAgentId);
-                  const sa = getAgent(t.sellingAgentId);
-                  const comm = calculateCommission(t);
-                  const isSame = t.listingAgentId === t.sellingAgentId;
+                {filtered.map(txn => {
+                  const la = getAgent(txn.listingAgentId);
+                  const sa = getAgent(txn.sellingAgentId);
+                  const comm = calculateCommission(txn);
+                  const isSame = txn.listingAgentId === txn.sellingAgentId;
                   return (
                     <tr
-                      key={t.id}
-                      onClick={() => navigate(`/transactions/${t.id}`)}
+                      key={txn.id}
+                      onClick={() => navigate(`/transactions/${txn.id}`)}
                       className="hover:bg-[#FAFBFC] cursor-pointer transition-colors group"
                     >
                       <td className="px-5 py-4">
                         <div>
                           <p className="text-sm font-semibold text-[#0A1628] truncate max-w-[200px]">
-                            {t.propertyAddress.split(',')[0]}
+                            {txn.propertyAddress.split(',')[0]}
                           </p>
                           <div className="flex items-center gap-2 mt-0.5">
-                            <span className="text-xs text-[#94A3B8]">{t.id}</span>
-                            <span className={`text-xs px-1.5 py-0.5 rounded-full font-medium ${t.propertyType === 'sale' ? 'bg-blue-50 text-blue-600' : 'bg-purple-50 text-purple-600'}`}>
-                              {t.propertyType}
+                            <span className="text-xs text-[#94A3B8]">{txn.id}</span>
+                            <span className={`text-xs px-1.5 py-0.5 rounded-full font-medium ${txn.propertyType === 'sale' ? 'bg-blue-50 text-blue-600' : 'bg-purple-50 text-purple-600'}`}>
+                              {t(`propertyType.${txn.propertyType}`)}
                             </span>
                           </div>
                         </div>
                       </td>
                       <td className="px-4 py-4 text-sm font-bold text-[#0A1628]">
-                        {formatCurrency(t.transactionValue)}
+                        {formatCurrency(txn.transactionValue)}
                       </td>
                       <td className="px-4 py-4">
-                        <StageBadge stage={t.stage} size="sm" />
+                        <StageBadge stage={txn.stage} size="sm" />
                       </td>
                       <td className="px-4 py-4">
                         {la && <AgentChip agent={la} size="sm" />}
                       </td>
                       <td className="px-4 py-4">
                         {isSame ? (
-                          <span className="text-xs text-[#94A3B8] italic">Same agent</span>
+                          <span className="text-xs text-[#94A3B8] italic">{t('common.sameAgent')}</span>
                         ) : sa ? (
                           <AgentChip agent={sa} size="sm" />
                         ) : null}
@@ -208,7 +213,7 @@ export function TransactionsListPage() {
                         </span>
                       </td>
                       <td className="px-4 py-4 text-sm text-[#64748B]">
-                        {formatDate(t.date)}
+                        {formatDate(txn.date)}
                       </td>
                       <td className="px-4 py-4">
                         <ChevronRight className="w-4 h-4 text-[#CBD5E1] group-hover:text-[#D4A853] transition-colors" />
@@ -222,24 +227,24 @@ export function TransactionsListPage() {
 
           {/* Mobile Card List */}
           <div className="md:hidden space-y-3">
-            {filtered.map(t => {
-              const la = getAgent(t.listingAgentId);
-              const comm = calculateCommission(t);
+            {filtered.map(txn => {
+              const la = getAgent(txn.listingAgentId);
+              const comm = calculateCommission(txn);
               return (
                 <div
-                  key={t.id}
-                  onClick={() => navigate(`/transactions/${t.id}`)}
+                  key={txn.id}
+                  onClick={() => navigate(`/transactions/${txn.id}`)}
                   className="bg-white rounded-xl border border-[#E2E8F0] p-4 shadow-[0_1px_3px_rgba(0,0,0,0.06)] cursor-pointer hover:shadow-md transition-all"
                 >
                   <div className="flex items-start justify-between mb-2">
-                    <p className="text-sm font-semibold text-[#0A1628]">{t.propertyAddress.split(',')[0]}</p>
-                    <StageBadge stage={t.stage} size="sm" />
+                    <p className="text-sm font-semibold text-[#0A1628]">{txn.propertyAddress.split(',')[0]}</p>
+                    <StageBadge stage={txn.stage} size="sm" />
                   </div>
-                  <p className="text-xs text-[#94A3B8] mb-3">{t.id} · {formatDate(t.date)}</p>
+                  <p className="text-xs text-[#94A3B8] mb-3">{txn.id} · {formatDate(txn.date)}</p>
                   <div className="flex items-center justify-between">
                     {la && <AgentChip agent={la} size="sm" />}
                     <div className="text-right">
-                      <p className="text-xs text-[#64748B]">Commission</p>
+                      <p className="text-xs text-[#64748B]">{t('transactions.mobileCommissionLabel')}</p>
                       <p className="text-sm font-bold text-[#D4A853]">{formatCurrency(comm.agentTotal)}</p>
                     </div>
                   </div>
@@ -251,7 +256,7 @@ export function TransactionsListPage() {
       )}
 
       <p className="text-xs text-[#94A3B8] mt-4 text-center">
-        Showing {filtered.length} of {transactions.length} transactions
+        {t('transactions.showing', { filtered: filtered.length, total: transactions.length })}
       </p>
     </div>
   );
