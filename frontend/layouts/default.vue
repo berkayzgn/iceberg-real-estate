@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { toApiErrorInfo } from "~/utils/api-error";
+
 const ui = useUiStore();
 const tx = useTransactionsStore();
 const agents = useAgentsStore();
@@ -8,9 +10,8 @@ onMounted(async () => {
   try {
     await Promise.all([agents.fetchAll(), tx.fetchAll()]);
   } catch (error) {
-    const message =
-      error instanceof Error ? error.message : 'Veriler yüklenemedi.';
-    toast.error(message, 'Bağlantı hatası');
+    const err = toApiErrorInfo(error, "Veriler yüklenemedi.");
+    toast.error(err.message, "Bağlantı hatası");
   }
 });
 </script>
@@ -18,7 +19,9 @@ onMounted(async () => {
 <template>
   <div class="flex h-screen overflow-hidden bg-[#FAFBFC]">
     <SharedAppSidebar />
-    <main class="min-w-0 flex-1 overflow-y-auto overflow-x-hidden pb-20 md:pb-0">
+    <main
+      class="min-w-0 flex-1 overflow-y-auto overflow-x-hidden pb-20 md:pb-0"
+    >
       <slot />
     </main>
 

@@ -2,6 +2,7 @@
 import { X, Building2, DollarSign, Users } from "lucide-vue-next";
 import type { Agent, PropertyType } from "~/utils/demo-data";
 import { formatCurrency } from "~/utils/demo-data";
+import { toApiErrorInfo } from "~/utils/api-error";
 
 const props = defineProps<{
   open: boolean;
@@ -108,11 +109,8 @@ async function create() {
     reset();
     emit("close");
   } catch (error) {
-    const message =
-      error instanceof Error
-        ? error.message
-        : t("createTransaction.createError");
-    toast.error(message, t("common.notFound"));
+    const err = toApiErrorInfo(error, t("createTransaction.createError"));
+    toast.error(err.message, err.title);
   }
 }
 

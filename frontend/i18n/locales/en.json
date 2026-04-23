@@ -104,6 +104,9 @@
   "agents": {
     "count": "{count} people.",
     "newAgent": "New agent",
+    "typeFunnel": "Agent type funnel",
+    "otherType": "Other",
+    "noAgentsInType": "No agents in this type",
     "appearsInSelections": "Will appear in selection lists immediately.",
     "nameSurname": "Full name",
     "selectTitle": "Select title",

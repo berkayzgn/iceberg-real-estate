@@ -146,12 +146,6 @@ async function onDrop(stage: Stage) {
 onMounted(async () => {
   await Promise.all([agents.fetchAll(true), tx.fetchAll(true)]);
 });
-
-const config = useRuntimeConfig();
-const { data: health, error: healthError } = await useFetch(
-  () => `${config.public.apiBase}/health`,
-  { server: false, lazy: true }
-);
 </script>
 
 <template>
@@ -166,18 +160,6 @@ const { data: health, error: healthError } = await useFetch(
         </h1>
         <p class="mt-0.5 text-sm text-[#64748B]">
           {{ t("dashboard.subtitle") }}
-        </p>
-        <p class="mt-2 text-xs text-slate-500">
-          {{ t("dashboard.apiHealth") }}
-          <span v-if="healthError" class="text-amber-700">{{
-            healthError.message
-          }}</span>
-          <code v-else-if="health" class="text-emerald-800">{{
-            JSON.stringify(health)
-          }}</code>
-          <span v-else class="text-slate-400">{{
-            t("dashboard.apiLoading")
-          }}</span>
         </p>
       </div>
       <button

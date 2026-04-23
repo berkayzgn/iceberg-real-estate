@@ -6,14 +6,15 @@ import {
   FileX,
   ChevronRight,
   Trash2,
-} from 'lucide-vue-next';
-import type { PropertyType, Stage, Transaction } from '~/utils/demo-data';
+} from "lucide-vue-next";
+import type { PropertyType, Stage, Transaction } from "~/utils/demo-data";
 import {
   STAGE_ORDER,
   calculateCommission,
   formatCurrency,
   formatDate,
-} from '~/utils/demo-data';
+} from "~/utils/demo-data";
+import { toApiErrorInfo } from "~/utils/api-error";
 const tx = useTransactionsStore();
 const agents = useAgentsStore();
 const toast = useToastStore();
@@ -23,23 +24,23 @@ function getAgent(id: string) {
   return agents.findById(id);
 }
 
-type SortKey = 'date' | 'transactionValue' | 'stage';
-type SortDir = 'asc' | 'desc';
+type SortKey = "date" | "transactionValue" | "stage";
+type SortDir = "asc" | "desc";
 
-const search = ref('');
-const stageFilter = ref<Stage | 'all'>('all');
-const agentFilter = ref<string | 'all'>('all');
-const typeFilter = ref<PropertyType | 'all'>('all');
-const sortKey = ref<SortKey>('date');
-const sortDir = ref<SortDir>('desc');
+const search = ref("");
+const stageFilter = ref<Stage | "all">("all");
+const agentFilter = ref<string | "all">("all");
+const typeFilter = ref<PropertyType | "all">("all");
+const sortKey = ref<SortKey>("date");
+const sortDir = ref<SortDir>("desc");
 
 function toggleSort(key: SortKey) {
   if (sortKey.value === key) {
-    sortDir.value = sortDir.value === 'asc' ? 'desc' : 'asc';
+    sortDir.value = sortDir.value === "asc" ? "desc" : "asc";
     return;
   }
   sortKey.value = key;
-  sortDir.value = 'desc';
+  sortDir.value = "desc";
 }
 
 const filtered = computed<Transaction[]>(() => {
@@ -51,43 +52,45 @@ const filtered = computed<Transaction[]>(() => {
         !q ||
         t.propertyAddress.toLowerCase().includes(q) ||
         t.id.toLowerCase().includes(q);
-      const matchStage = stageFilter.value === 'all' || t.stage === stageFilter.value;
+      const matchStage =
+        stageFilter.value === "all" || t.stage === stageFilter.value;
       const matchAgent =
-        agentFilter.value === 'all' ||
+        agentFilter.value === "all" ||
         t.listingAgentId === agentFilter.value ||
         t.sellingAgentId === agentFilter.value;
-      const matchType = typeFilter.value === 'all' || t.propertyType === typeFilter.value;
+      const matchType =
+        typeFilter.value === "all" || t.propertyType === typeFilter.value;
       return matchSearch && matchStage && matchAgent && matchType;
     })
     .sort((a, b) => {
       let cmp = 0;
-      if (sortKey.value === 'date') {
+      if (sortKey.value === "date") {
         cmp = new Date(a.date).getTime() - new Date(b.date).getTime();
-      } else if (sortKey.value === 'transactionValue') {
+      } else if (sortKey.value === "transactionValue") {
         cmp = a.transactionValue - b.transactionValue;
-      } else if (sortKey.value === 'stage') {
+      } else if (sortKey.value === "stage") {
         cmp = STAGE_ORDER.indexOf(a.stage) - STAGE_ORDER.indexOf(b.stage);
       }
-      return sortDir.value === 'asc' ? cmp : -cmp;
+      return sortDir.value === "asc" ? cmp : -cmp;
     });
 });
 
 function clearFilters() {
-  search.value = '';
-  stageFilter.value = 'all';
-  agentFilter.value = 'all';
-  typeFilter.value = 'all';
+  search.value = "";
+  stageFilter.value = "all";
+  agentFilter.value = "all";
+  typeFilter.value = "all";
 }
 
 async function removeTxn(id: string) {
-  const ok = window.confirm(t('common.confirmDelete'));
+  const ok = window.confirm(t("common.confirmDelete"));
   if (!ok) return;
   try {
     await tx.removeTransaction(id);
-    toast.success(t('common.delete'), t('common.panel'));
+    toast.success(t("common.delete"), t("common.panel"));
   } catch (error) {
-    const message = error instanceof Error ? error.message : t('transactions.deleteError');
-    toast.error(message, 'Hata');
+    const err = toApiErrorInfo(error, t("transactions.deleteError"));
+    toast.error(err.message, err.title);
   }
 }
 </script>
@@ -113,7 +116,9 @@ async function removeTxn(id: string) {
     >
       <div class="flex flex-wrap items-center gap-3">
         <div class="relative min-w-[200px] flex-1">
-          <Search class="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[#94A3B8]" />
+          <Search
+            class="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[#94A3B8]"
+          />
           <input
             v-model="search"
             class="w-full rounded-lg border border-[#E2E8F0] bg-[#FAFBFC] py-2 pl-9 pr-4 text-sm text-[#0A1628] placeholder-[#94A3B8] transition-all focus:border-[#D4A853] focus:outline-none focus:ring-2 focus:ring-[#D4A853]/20"
@@ -127,7 +132,7 @@ async function removeTxn(id: string) {
             v-model="stageFilter"
             class="cursor-pointer rounded-lg border border-[#E2E8F0] bg-[#FAFBFC] px-3 py-2 text-sm text-[#0A1628] transition-all focus:border-[#D4A853] focus:outline-none"
           >
-            <option value="all">{{ t('transactions.allStages') }}</option>
+            <option value="all">{{ t("transactions.allStages") }}</option>
             <option v-for="s in STAGE_ORDER" :key="s" :value="s">
               {{ t(`stages.${s}`) }}
             </option>
@@ -138,11 +143,15 @@ async function removeTxn(id: string) {
           v-model="agentFilter"
           class="cursor-pointer rounded-lg border border-[#E2E8F0] bg-[#FAFBFC] px-3 py-2 text-sm text-[#0A1628] transition-all focus:border-[#D4A853] focus:outline-none"
         >
-          <option value="all">{{ t('transactions.allAgents') }}</option>
-          <option v-for="a in agents.agents" :key="a.id" :value="a.id">{{ a.name }}</option>
+          <option value="all">{{ t("transactions.allAgents") }}</option>
+          <option v-for="a in agents.agents" :key="a.id" :value="a.id">
+            {{ a.name }}
+          </option>
         </select>
 
-        <div class="flex overflow-hidden rounded-lg border border-[#E2E8F0] text-sm">
+        <div
+          class="flex overflow-hidden rounded-lg border border-[#E2E8F0] text-sm"
+        >
           <button
             v-for="typeOpt in (['all', 'sale', 'rental'] as const)"
             :key="typeOpt"
@@ -156,11 +165,11 @@ async function removeTxn(id: string) {
             @click="typeFilter = typeOpt"
           >
             {{
-              typeOpt === 'all'
-                ? t('dashboard.all')
-                : typeOpt === 'sale'
-                  ? t('transactions.sale')
-                  : t('transactions.rental')
+              typeOpt === "all"
+                ? t("dashboard.all")
+                : typeOpt === "sale"
+                ? t("transactions.sale")
+                : t("transactions.rental")
             }}
           </button>
         </div>
@@ -171,19 +180,25 @@ async function removeTxn(id: string) {
       <div
         class="flex flex-col items-center justify-center gap-4 rounded-2xl border border-[#E2E8F0] bg-white py-20 shadow-[0_1px_3px_rgba(0,0,0,0.06)]"
       >
-        <div class="flex h-16 w-16 items-center justify-center rounded-2xl bg-[#F1F5F9]">
+        <div
+          class="flex h-16 w-16 items-center justify-center rounded-2xl bg-[#F1F5F9]"
+        >
           <FileX class="h-8 w-8 text-[#CBD5E1]" />
         </div>
         <div class="text-center">
-          <h3 class="text-base font-semibold text-[#0A1628]">{{ t('transactions.noResults') }}</h3>
-          <p class="mt-1 text-sm text-[#64748B]">{{ t('transactions.noResultsHint') }}</p>
+          <h3 class="text-base font-semibold text-[#0A1628]">
+            {{ t("transactions.noResults") }}
+          </h3>
+          <p class="mt-1 text-sm text-[#64748B]">
+            {{ t("transactions.noResultsHint") }}
+          </p>
         </div>
         <button
           type="button"
           class="rounded-lg border border-[#E2E8F0] px-4 py-2 text-sm font-medium text-[#64748B] transition-colors hover:bg-[#F1F5F9]"
           @click="clearFilters"
         >
-          {{ t('transactions.clearFilters') }}
+          {{ t("transactions.clearFilters") }}
         </button>
       </div>
     </div>
@@ -196,7 +211,10 @@ async function removeTxn(id: string) {
           <thead>
             <tr class="border-b border-[#F1F5F9] bg-[#FAFBFC]">
               <th class="px-5 py-3.5 text-left">
-                <span class="text-xs font-semibold uppercase tracking-wider text-[#64748B]">{{ t('transactions.property') }}</span>
+                <span
+                  class="text-xs font-semibold uppercase tracking-wider text-[#64748B]"
+                  >{{ t("transactions.property") }}</span
+                >
               </th>
               <th class="px-4 py-3.5 text-left">
                 <button
@@ -207,7 +225,11 @@ async function removeTxn(id: string) {
                   Değer
                   <ArrowUpDown
                     class="h-3 w-3 transition-colors"
-                    :class="sortKey === 'transactionValue' ? 'text-[#D4A853]' : 'text-[#CBD5E1]'"
+                    :class="
+                      sortKey === 'transactionValue'
+                        ? 'text-[#D4A853]'
+                        : 'text-[#CBD5E1]'
+                    "
                   />
                 </button>
               </th>
@@ -220,23 +242,28 @@ async function removeTxn(id: string) {
                   Aşama
                   <ArrowUpDown
                     class="h-3 w-3 transition-colors"
-                    :class="sortKey === 'stage' ? 'text-[#D4A853]' : 'text-[#CBD5E1]'"
+                    :class="
+                      sortKey === 'stage' ? 'text-[#D4A853]' : 'text-[#CBD5E1]'
+                    "
                   />
                 </button>
               </th>
               <th class="px-4 py-3.5 text-left">
-                <span class="whitespace-nowrap text-xs font-semibold uppercase tracking-wider text-[#64748B]"
-                  >{{ t('transactions.listingAgent') }}</span
+                <span
+                  class="whitespace-nowrap text-xs font-semibold uppercase tracking-wider text-[#64748B]"
+                  >{{ t("transactions.listingAgent") }}</span
                 >
               </th>
               <th class="px-4 py-3.5 text-left">
-                <span class="whitespace-nowrap text-xs font-semibold uppercase tracking-wider text-[#64748B]"
-                  >{{ t('transactions.sellingAgent') }}</span
+                <span
+                  class="whitespace-nowrap text-xs font-semibold uppercase tracking-wider text-[#64748B]"
+                  >{{ t("transactions.sellingAgent") }}</span
                 >
               </th>
               <th class="px-4 py-3.5 text-left">
-                <span class="whitespace-nowrap text-xs font-semibold uppercase tracking-wider text-[#64748B]"
-                  >{{ t('transactions.commission') }}</span
+                <span
+                  class="whitespace-nowrap text-xs font-semibold uppercase tracking-wider text-[#64748B]"
+                  >{{ t("transactions.commission") }}</span
                 >
               </th>
               <th class="px-4 py-3.5 text-left">
@@ -248,7 +275,9 @@ async function removeTxn(id: string) {
                   Tarih
                   <ArrowUpDown
                     class="h-3 w-3 transition-colors"
-                    :class="sortKey === 'date' ? 'text-[#D4A853]' : 'text-[#CBD5E1]'"
+                    :class="
+                      sortKey === 'date' ? 'text-[#D4A853]' : 'text-[#CBD5E1]'
+                    "
                   />
                 </button>
               </th>
@@ -264,8 +293,10 @@ async function removeTxn(id: string) {
             >
               <td class="px-5 py-4">
                 <div>
-                  <p class="max-w-[220px] truncate text-sm font-semibold text-[#0A1628]">
-                    {{ txn.propertyAddress.split(',')[0] }}
+                  <p
+                    class="max-w-[220px] truncate text-sm font-semibold text-[#0A1628]"
+                  >
+                    {{ txn.propertyAddress.split(",")[0] }}
                   </p>
                   <div class="mt-0.5 flex items-center gap-2">
                     <span class="text-xs text-[#94A3B8]">{{ txn.id }}</span>
@@ -277,7 +308,11 @@ async function removeTxn(id: string) {
                           : 'bg-purple-50 text-purple-600'
                       "
                     >
-                      {{ txn.propertyType === 'sale' ? t('transactions.sale') : t('transactions.rental') }}
+                      {{
+                        txn.propertyType === "sale"
+                          ? t("transactions.sale")
+                          : t("transactions.rental")
+                      }}
                     </span>
                   </div>
                 </div>
@@ -289,13 +324,17 @@ async function removeTxn(id: string) {
                 <TransactionStageBadge :stage="txn.stage" size="sm" />
               </td>
               <td class="px-4 py-4">
-                <ReportsAgentChip v-if="getAgent(txn.listingAgentId)" :agent="getAgent(txn.listingAgentId)!" size="sm" />
+                <ReportsAgentChip
+                  v-if="getAgent(txn.listingAgentId)"
+                  :agent="getAgent(txn.listingAgentId)!"
+                  size="sm"
+                />
               </td>
               <td class="px-4 py-4">
                 <span
                   v-if="txn.listingAgentId === txn.sellingAgentId"
                   class="text-xs italic text-[#94A3B8]"
-                  >{{ t('transactions.sameAgent') }}</span
+                  >{{ t("transactions.sameAgent") }}</span
                 >
                 <ReportsAgentChip
                   v-else-if="getAgent(txn.sellingAgentId)"
@@ -340,7 +379,7 @@ async function removeTxn(id: string) {
         >
           <div class="mb-2 flex items-start justify-between">
             <p class="text-sm font-semibold text-[#0A1628]">
-              {{ txn.propertyAddress.split(',')[0] }}
+              {{ txn.propertyAddress.split(",")[0] }}
             </p>
             <TransactionStageBadge :stage="txn.stage" size="sm" />
           </div>
@@ -348,9 +387,15 @@ async function removeTxn(id: string) {
             {{ txn.id }} · {{ formatDate(txn.date) }}
           </p>
           <div class="flex items-center justify-between">
-            <ReportsAgentChip v-if="getAgent(txn.listingAgentId)" :agent="getAgent(txn.listingAgentId)!" size="sm" />
+            <ReportsAgentChip
+              v-if="getAgent(txn.listingAgentId)"
+              :agent="getAgent(txn.listingAgentId)!"
+              size="sm"
+            />
             <div class="text-right">
-              <p class="text-xs text-[#64748B]">{{ t('transactions.commission') }}</p>
+              <p class="text-xs text-[#64748B]">
+                {{ t("transactions.commission") }}
+              </p>
               <p class="text-sm font-bold text-[#D4A853]">
                 {{ formatCurrency(calculateCommission(txn).agentTotal) }}
               </p>
@@ -363,7 +408,7 @@ async function removeTxn(id: string) {
               @click.stop="removeTxn(txn.id)"
             >
               <Trash2 class="h-3.5 w-3.5" />
-              {{ t('common.delete') }}
+              {{ t("common.delete") }}
             </button>
           </div>
         </div>

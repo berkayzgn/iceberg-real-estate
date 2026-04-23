@@ -87,15 +87,15 @@ Tamamladıkça `[ ]` → `[x]` yapın.
 - [x] Transaction service temel iş mantığı testleri
 
 ### P3.3 Teslim dokümanları
-- [ ] `DESIGN.md`:
-  - [ ] data model kararları
-  - [ ] commission saklama stratejisi (embedded/ayrı/dinamik) + gerekçe
-  - [ ] stage geçiş stratejisi
-  - [ ] frontend state yönetimi
+- [x] `DESIGN.md`:
+  - [x] data model kararları
+  - [x] commission saklama stratejisi (embedded/ayrı/dinamik) + gerekçe
+  - [x] stage geçiş stratejisi
+  - [x] frontend state yönetimi
 - [ ] `README.md`:
-  - [ ] backend/frontend kurulum
-  - [ ] env değişkenleri
-  - [ ] test komutları
+  - [x] backend/frontend kurulum
+  - [x] env değişkenleri
+  - [x] test komutları
   - [ ] canlı URL’ler
 
 ---

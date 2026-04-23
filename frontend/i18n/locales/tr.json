@@ -104,6 +104,9 @@
   "agents": {
     "count": "{count} kişi.",
     "newAgent": "Yeni danışman",
+    "typeFunnel": "Danışman tür hunisi",
+    "otherType": "Diğer",
+    "noAgentsInType": "Bu türde danışman yok",
     "appearsInSelections": "Seçim listelerinde hemen görünecek.",
     "nameSurname": "Ad soyad",
     "selectTitle": "Ünvan seçin",
