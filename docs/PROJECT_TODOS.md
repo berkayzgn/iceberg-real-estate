@@ -97,14 +97,14 @@ Tamamladıkça `[ ]` → `[x]` yapın.
   - [x] backend/frontend kurulum
   - [x] env değişkenleri
   - [x] test komutları
-  - [ ] canlı URL’ler
+  - [x] canlı URL’ler (API URL eklendi; Vercel URL deploy sonrası eklenecek)
 
 ---
 
 ## P4 — Deployment
-- [ ] Backend deployment (Render/Railway vb.)
+- [x] Backend deployment (Render/Railway vb.)
 - [ ] Frontend deployment (Vercel/Netlify vb.)
-- [ ] Prod env değişkenleri
+- [ ] Prod env değişkenleri (Render: `MONGODB_URI` + `CORS_ORIGINS` (Vercel domain))
 - [ ] E2E smoke test (create transaction -> stage transition -> breakdown/report)
 
 ---

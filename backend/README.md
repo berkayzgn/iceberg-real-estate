@@ -37,5 +37,6 @@ npm run test:e2e      # e2e — çalışan bir MongoDB gerekir (varsayılan URI:
 | Değişken       | Açıklama                          |
 |----------------|-----------------------------------|
 | `MONGODB_URI`  | Zorunlu — Mongo connection string |
+| `CORS_ORIGINS` | Opsiyonel — virgülle ayrılmış origin listesi (örn. `https://my-app.vercel.app`). Boşsa local Nuxt portları (3000/3001) izinlidir. |
 | `PORT`         | Opsiyonel, varsayılan `3002`      |
 | `NODE_ENV`     | `development` / `production`    |
