@@ -77,11 +77,11 @@ export function calculateCommission(transaction: Transaction) {
   };
 }
 
-/** Rehber: tutarlar TL — para birimi TL gösterilir. */
+/** Para birimi: USD (gösterim). */
 export function formatCurrency(value: number): string {
-  return new Intl.NumberFormat('tr-TR', {
+  return new Intl.NumberFormat('en-US', {
     style: 'currency',
-    currency: 'TRY',
+    currency: 'USD',
     maximumFractionDigits: 0,
   }).format(value);
 }

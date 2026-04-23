@@ -42,7 +42,7 @@ export class ReportsService {
 
     return {
       ...totals,
-      currency: 'TRY',
+      currency: 'USD',
       generatedAt: new Date().toISOString(),
     };
   }
@@ -119,7 +119,7 @@ export class ReportsService {
         email: agent.email,
       },
       ...report,
-      currency: 'TRY',
+      currency: 'USD',
       generatedAt: new Date().toISOString(),
     };
   }

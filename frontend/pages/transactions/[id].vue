@@ -164,7 +164,6 @@ onMounted(async () => {
                   <Calendar class="h-3.5 w-3.5" />
                   {{ new Date(transaction.date).toLocaleDateString("tr-TR") }}
                 </span>
-                <span>Ref: {{ transaction.id }}</span>
                 <span
                   class="rounded-full px-2 py-0.5 font-medium"
                   :class="

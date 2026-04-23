@@ -13,8 +13,9 @@ Tamamladıkça `[ ]` → `[x]` yapın.
 - [x] Database user oluştur (readWrite)
 - [x] Network Access: geliştirme için IP izin ver (`0.0.0.0/0` sadece geçici)
 - [x] Connection string al (`mongodb+srv://...`)
+- [ ] `backend/.env.example` oluştur (README referans veriyor ama dosya repoda yok)
 - [x] `backend/.env` içine `MONGODB_URI` ekle
-- [x] `npm run start:dev` ile backend bağlantısını doğrula
+- [x] `npm run start` ile backend ayağa kalkıyor (Mongo bağlıyken doğrulanmalı)
 
 ### P0.2 Temel altyapı doğrulama
 - [x] Repo yapısı: `backend/` + `frontend/`
@@ -119,6 +120,9 @@ Tamamladıkça `[ ]` → `[x]` yapın.
 - [x] Yeni danışman modalında `ünvan/uzmanlık` alanlarını seçim listesine çevirme
 - [x] Backend’de global exception filter + Swagger (`/api/docs`) kurulumu
 - [x] Transaction service için unit testler (komisyon + stage geçiş + breakdown)
+- [x] Para birimi gösterimi USD yapıldı (frontend format + reports currency metadata)
+- [x] İşlem detayında “Ref: <id>” UI’dan kaldırıldı
+- [x] Backend TypeScript `ignoreDeprecations` ayarı düzeltildi (TS5103 fix)
 
 ---
 
