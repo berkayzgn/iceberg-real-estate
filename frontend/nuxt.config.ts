@@ -27,6 +27,9 @@ export default defineNuxtConfig({
         process.env.NUXT_PUBLIC_API_BASE ?? 'http://localhost:3002/api',
     },
   },
+  experimental: {
+    appManifest: true,
+  },
   compatibilityDate: '2024-11-01',
   devtools: { enabled: true },
 });

@@ -22,7 +22,7 @@
     "subtitle": "Continue with demo credentials.",
     "email": "Email",
     "password": "Password",
-    "demoEmail": "admin@icebergdigital.co",
+    "demoEmail": "admin{'@'}icebergdigital.co",
     "passwordPlaceholder": "••••••••",
     "show": "Show",
     "hide": "Hide",

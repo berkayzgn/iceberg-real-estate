@@ -6,8 +6,19 @@ import {
   getNextStage,
   STAGE_COLORS,
   STAGE_ORDER,
-} from '~/utils/demo-data';
-import { ArrowLeft, ChevronRight, Home, Building2, Calendar, CheckCircle, AlertCircle, Clock, Trash2 } from 'lucide-vue-next';
+} from "~/utils/demo-data";
+import { toApiErrorInfo } from "~/utils/api-error";
+import {
+  ArrowLeft,
+  ChevronRight,
+  Home,
+  Building2,
+  Calendar,
+  CheckCircle,
+  AlertCircle,
+  Clock,
+  Trash2,
+} from "lucide-vue-next";
 
 const tx = useTransactionsStore();
 const toast = useToastStore();
@@ -25,15 +36,15 @@ function agent(aid: string) {
 }
 
 const comm = computed(() =>
-  transaction.value ? calculateCommission(transaction.value) : null,
+  transaction.value ? calculateCommission(transaction.value) : null
 );
 
 const nextStage = computed(() =>
-  transaction.value ? getNextStage(transaction.value.stage) : null,
+  transaction.value ? getNextStage(transaction.value.stage) : null
 );
 
 const stageColors = computed(() =>
-  transaction.value ? STAGE_COLORS[transaction.value.stage] : null,
+  transaction.value ? STAGE_COLORS[transaction.value.stage] : null
 );
 
 const showConfirm = ref(false);
@@ -45,30 +56,29 @@ async function advance() {
     await tx.advanceStage(transaction.value.id);
     if (to) {
       toast.success(
-        to === 'completed' ? 'İşlem tamamlandı.' : 'Aşama güncellendi.',
-        'Başarılı',
+        to === "completed" ? "İşlem tamamlandı." : "Aşama güncellendi.",
+        "Başarılı"
       );
     }
     showConfirm.value = false;
   } catch (error) {
-    const message =
-      error instanceof Error ? error.message : 'Aşama güncellenemedi.';
-    toast.error(message, 'Hata');
+    const err = toApiErrorInfo(error, "Aşama güncellenemedi.");
+    toast.error(err.message, err.title);
   }
 }
 
 async function removeTransaction() {
   if (!transaction.value) return;
-  const ok = window.confirm(t('common.confirmDelete'));
+  const ok = window.confirm(t("common.confirmDelete"));
   if (!ok) return;
 
   try {
     await tx.removeTransaction(transaction.value.id);
-    toast.success(t('common.delete'), t('common.panel'));
-    await navigateTo('/transactions');
+    toast.success(t("common.delete"), t("common.panel"));
+    await navigateTo("/transactions");
   } catch (error) {
-    const message = error instanceof Error ? error.message : 'İşlem silinemedi.';
-    toast.error(message, 'Hata');
+    const err = toApiErrorInfo(error, "İşlem silinemedi.");
+    toast.error(err.message, err.title);
   }
 }
 
@@ -88,12 +98,14 @@ onMounted(async () => {
 
 <template>
   <div v-if="loading" class="p-8">
-    <p class="text-[#64748B]">{{ t('common.loading') }}</p>
+    <p class="text-[#64748B]">{{ t("common.loading") }}</p>
   </div>
   <div v-else-if="!transaction" class="p-8">
-    <p class="text-[#64748B]">{{ t('common.notFound') }}</p>
-    <NuxtLink to="/transactions" class="mt-4 text-sm text-[#D4A853] hover:underline"
-      >{{ t('common.backToList') }}</NuxtLink
+    <p class="text-[#64748B]">{{ t("common.notFound") }}</p>
+    <NuxtLink
+      to="/transactions"
+      class="mt-4 text-sm text-[#D4A853] hover:underline"
+      >{{ t("common.backToList") }}</NuxtLink
     >
   </div>
   <div v-else class="mx-auto max-w-4xl p-6 lg:p-8">
@@ -108,7 +120,9 @@ onMounted(async () => {
       <div
         class="mb-5 rounded-2xl border border-[#E2E8F0] bg-white p-6 shadow-[0_1px_3px_rgba(0,0,0,0.06)]"
       >
-        <div class="mb-6 flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+        <div
+          class="mb-6 flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between"
+        >
           <div class="flex items-start gap-4">
             <div
               class="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-xl"
@@ -130,9 +144,11 @@ onMounted(async () => {
               <div class="mb-1 flex flex-wrap items-center gap-3">
                 <h1
                   class="text-xl font-bold text-[#0A1628]"
-                  style="font-family: 'Plus Jakarta Sans', ui-sans-serif, system-ui"
+                  style="
+                    font-family: 'Plus Jakarta Sans', ui-sans-serif, system-ui;
+                  "
                 >
-                  {{ transaction.propertyAddress.split(',')[0] }}
+                  {{ transaction.propertyAddress.split(",")[0] }}
                 </h1>
                 <TransactionStageBadge :stage="transaction.stage" />
               </div>
@@ -141,10 +157,12 @@ onMounted(async () => {
                 {{ transaction.propertyAddress }}
               </p>
 
-              <div class="mt-2 flex flex-wrap items-center gap-4 text-xs text-[#64748B]">
+              <div
+                class="mt-2 flex flex-wrap items-center gap-4 text-xs text-[#64748B]"
+              >
                 <span class="flex items-center gap-1.5">
                   <Calendar class="h-3.5 w-3.5" />
-                  {{ new Date(transaction.date).toLocaleDateString('tr-TR') }}
+                  {{ new Date(transaction.date).toLocaleDateString("tr-TR") }}
                 </span>
                 <span>Ref: {{ transaction.id }}</span>
                 <span
@@ -155,7 +173,9 @@ onMounted(async () => {
                       : 'bg-purple-50 text-purple-600'
                   "
                 >
-                  {{ transaction.propertyType === 'sale' ? 'Satış' : 'Kiralama' }}
+                  {{
+                    transaction.propertyType === "sale" ? "Satış" : "Kiralama"
+                  }}
                 </span>
               </div>
             </div>
@@ -163,10 +183,14 @@ onMounted(async () => {
 
           <div class="flex flex-col items-start gap-3 lg:items-end">
             <div>
-              <p class="text-right text-xs text-[#64748B]">{{ t('reports.totalServiceFee') }}</p>
+              <p class="text-right text-xs text-[#64748B]">
+                {{ t("reports.totalServiceFee") }}
+              </p>
               <p
                 class="text-2xl font-bold text-[#0A1628]"
-                style="font-family: 'Plus Jakarta Sans', ui-sans-serif, system-ui"
+                style="
+                  font-family: 'Plus Jakarta Sans', ui-sans-serif, system-ui;
+                "
               >
                 {{ formatCurrency(transaction.transactionValue) }}
               </p>
@@ -179,7 +203,7 @@ onMounted(async () => {
               style="background-color: #d4a853"
               @click="showConfirm = true"
             >
-              {{ t('transactions.advanceStage') }} ({{ stageLabel(nextStage) }})
+              {{ t("transactions.advanceStage") }} ({{ stageLabel(nextStage) }})
               <ChevronRight class="h-4 w-4" />
             </button>
             <button
@@ -188,12 +212,15 @@ onMounted(async () => {
               @click="removeTransaction"
             >
               <Trash2 class="h-3.5 w-3.5" />
-              {{ t('common.delete') }}
+              {{ t("common.delete") }}
             </button>
 
-            <div v-if="!nextStage" class="flex items-center gap-2 text-sm font-semibold text-green-600">
+            <div
+              v-if="!nextStage"
+              class="flex items-center gap-2 text-sm font-semibold text-green-600"
+            >
               <CheckCircle class="h-4 w-4" />
-              {{ stageLabel('completed') }}
+              {{ stageLabel("completed") }}
             </div>
           </div>
         </div>
@@ -243,16 +270,28 @@ onMounted(async () => {
           class="rounded-2xl border border-[#E2E8F0] bg-white p-6 shadow-[0_1px_3px_rgba(0,0,0,0.06)]"
         >
           <h3 class="mb-5 text-base font-semibold text-[#0A1628]">
-            {{ t('transactions.commissionBreakdown') }}
+            {{ t("transactions.commissionBreakdown") }}
           </h3>
           <div v-if="comm" class="space-y-3">
-            <div class="flex items-center justify-between rounded-xl border border-[#E2E8F0] bg-[#FAFBFC] p-4">
-              <span class="text-sm font-medium text-[#64748B]">{{ t('transactions.agency50') }}</span>
-              <span class="text-sm font-bold text-[#0A1628]">{{ formatCurrency(comm.company) }}</span>
+            <div
+              class="flex items-center justify-between rounded-xl border border-[#E2E8F0] bg-[#FAFBFC] p-4"
+            >
+              <span class="text-sm font-medium text-[#64748B]">{{
+                t("transactions.agency50")
+              }}</span>
+              <span class="text-sm font-bold text-[#0A1628]">{{
+                formatCurrency(comm.company)
+              }}</span>
             </div>
-            <div class="flex items-center justify-between rounded-xl border border-[#E2E8F0] bg-[#FAFBFC] p-4">
-              <span class="text-sm font-medium text-[#64748B]">{{ t('transactions.agents50') }}</span>
-              <span class="text-sm font-bold text-[#D4A853]">{{ formatCurrency(comm.agentTotal) }}</span>
+            <div
+              class="flex items-center justify-between rounded-xl border border-[#E2E8F0] bg-[#FAFBFC] p-4"
+            >
+              <span class="text-sm font-medium text-[#64748B]">{{
+                t("transactions.agents50")
+              }}</span>
+              <span class="text-sm font-bold text-[#D4A853]">{{
+                formatCurrency(comm.agentTotal)
+              }}</span>
             </div>
             <div class="mt-2 flex h-3 overflow-hidden rounded-full">
               <div class="bg-[#0A1628]" style="width: 50%" />
@@ -266,7 +305,7 @@ onMounted(async () => {
           class="rounded-2xl border border-[#E2E8F0] bg-white p-6 shadow-[0_1px_3px_rgba(0,0,0,0.06)]"
         >
           <h3 class="mb-5 text-base font-semibold text-[#0A1628]">
-            {{ t('transactions.agentAssignments') }}
+            {{ t("transactions.agentAssignments") }}
           </h3>
 
           <div class="space-y-4">
@@ -275,11 +314,13 @@ onMounted(async () => {
               class="rounded-xl border border-[#E2E8F0] bg-[#FAFBFC] p-4"
             >
               <div class="mb-3 flex items-center justify-between">
-                <span class="text-xs font-semibold uppercase tracking-wider text-[#64748B]"
-                  >{{ t('transactions.listingAgent') }}</span
+                <span
+                  class="text-xs font-semibold uppercase tracking-wider text-[#64748B]"
+                  >{{ t("transactions.listingAgent") }}</span
                 >
-                <span class="rounded-full bg-blue-50 px-2 py-0.5 text-xs font-medium text-blue-600"
-                  >{{ t('transactions.listing') }}</span
+                <span
+                  class="rounded-full bg-blue-50 px-2 py-0.5 text-xs font-medium text-blue-600"
+                  >{{ t("transactions.listing") }}</span
                 >
               </div>
 
@@ -287,7 +328,9 @@ onMounted(async () => {
 
               <div class="mt-3 border-t border-[#E2E8F0] pt-3">
                 <div class="flex items-center justify-between">
-                  <span class="text-xs text-[#64748B]">{{ t('agents.earnings') }}</span>
+                  <span class="text-xs text-[#64748B]">{{
+                    t("agents.earnings")
+                  }}</span>
                   <span class="text-sm font-bold text-[#D4A853]">
                     {{ formatCurrency(comm?.listingAgent ?? 0) }}
                   </span>
@@ -296,15 +339,20 @@ onMounted(async () => {
             </div>
 
             <div
-              v-if="transaction.listingAgentId !== transaction.sellingAgentId && agent(transaction.sellingAgentId)"
+              v-if="
+                transaction.listingAgentId !== transaction.sellingAgentId &&
+                agent(transaction.sellingAgentId)
+              "
               class="rounded-xl border border-[#E2E8F0] bg-[#FAFBFC] p-4"
             >
               <div class="mb-3 flex items-center justify-between">
-                <span class="text-xs font-semibold uppercase tracking-wider text-[#64748B]"
-                  >{{ t('transactions.sellingAgent') }}</span
+                <span
+                  class="text-xs font-semibold uppercase tracking-wider text-[#64748B]"
+                  >{{ t("transactions.sellingAgent") }}</span
                 >
-                <span class="rounded-full bg-amber-50 px-2 py-0.5 text-xs font-medium text-amber-700"
-                  >{{ t('transactions.selling') }}</span
+                <span
+                  class="rounded-full bg-amber-50 px-2 py-0.5 text-xs font-medium text-amber-700"
+                  >{{ t("transactions.selling") }}</span
                 >
               </div>
 
@@ -312,7 +360,9 @@ onMounted(async () => {
 
               <div class="mt-3 border-t border-[#E2E8F0] pt-3">
                 <div class="flex items-center justify-between">
-                  <span class="text-xs text-[#64748B]">{{ t('agents.earnings') }}</span>
+                  <span class="text-xs text-[#64748B]">{{
+                    t("agents.earnings")
+                  }}</span>
                   <span class="text-sm font-bold text-[#D4A853]">
                     {{ formatCurrency(comm?.sellingAgent ?? 0) }}
                   </span>
@@ -325,23 +375,34 @@ onMounted(async () => {
               class="rounded-xl border border-amber-100 bg-amber-50 p-3"
             >
               <p class="text-xs font-medium text-amber-700">
-                Aynı danışman: tek pay ({{ formatCurrency(comm?.listingAgent ?? 0) }})
+                Aynı danışman: tek pay ({{
+                  formatCurrency(comm?.listingAgent ?? 0)
+                }})
               </p>
             </div>
 
-            <div class="rounded-xl border border-white/10 p-4" style="background-color: #0a1628">
+            <div
+              class="rounded-xl border border-white/10 p-4"
+              style="background-color: #0a1628"
+            >
               <div class="mb-2 flex items-center justify-between">
-                <span class="text-xs font-semibold uppercase tracking-wider text-white/60"
-                  >{{ t('transactions.agency') }}</span
+                <span
+                  class="text-xs font-semibold uppercase tracking-wider text-white/60"
+                  >{{ t("transactions.agency") }}</span
                 >
-                <span class="rounded-full bg-white/10 px-2 py-0.5 text-xs font-medium text-white/80"
+                <span
+                  class="rounded-full bg-white/10 px-2 py-0.5 text-xs font-medium text-white/80"
                   >50%</span
                 >
               </div>
-              <p class="text-sm font-bold text-white">{{ t('brand.agency') }}</p>
+              <p class="text-sm font-bold text-white">
+                {{ t("brand.agency") }}
+              </p>
               <div class="mt-3 border-t border-white/10 pt-3">
                 <div class="flex items-center justify-between">
-                  <span class="text-xs text-white/60">{{ t('agents.earnings') }}</span>
+                  <span class="text-xs text-white/60">{{
+                    t("agents.earnings")
+                  }}</span>
                   <span class="text-sm font-bold text-[#D4A853]">
                     {{ formatCurrency(comm?.company ?? 0) }}
                   </span>
@@ -357,14 +418,18 @@ onMounted(async () => {
         >
           <div class="mb-5 flex items-center gap-2">
             <Clock class="h-4 w-4 text-[#64748B]" />
-            <h3 class="text-base font-semibold text-[#0A1628]">{{ t('dashboard.activity') }}</h3>
+            <h3 class="text-base font-semibold text-[#0A1628]">
+              {{ t("dashboard.activity") }}
+            </h3>
           </div>
 
           <div class="relative">
             <div class="absolute bottom-0 left-3.5 top-0 w-px bg-[#E2E8F0]" />
             <div class="space-y-5">
               <div
-                v-for="(entry, idx) in [...transaction.activityLog].slice().reverse()"
+                v-for="(entry, idx) in [...transaction.activityLog]
+                  .slice()
+                  .reverse()"
                 :key="`${entry.id}-${idx}`"
                 class="relative flex gap-4"
               >
@@ -374,8 +439,8 @@ onMounted(async () => {
                     entry.type === 'stage_change'
                       ? 'bg-[#0A1628]'
                       : entry.type === 'financial'
-                        ? 'bg-[#D4A853]'
-                        : 'bg-[#94A3B8]'
+                      ? 'bg-[#D4A853]'
+                      : 'bg-[#94A3B8]'
                   "
                 >
                   <div class="h-2 w-2 rounded-full bg-white" />
@@ -407,18 +472,29 @@ onMounted(async () => {
         v-if="showConfirm && nextStage"
         class="fixed inset-0 z-50 flex items-center justify-center p-4"
       >
-        <div class="absolute inset-0 bg-black/40 backdrop-blur-sm" @click="showConfirm = false" />
-        <div class="relative w-full max-w-md rounded-2xl bg-white p-6 shadow-2xl">
+        <div
+          class="absolute inset-0 bg-black/40 backdrop-blur-sm"
+          @click="showConfirm = false"
+        />
+        <div
+          class="relative w-full max-w-md rounded-2xl bg-white p-6 shadow-2xl"
+        >
           <div class="mb-4 flex items-center gap-3">
-            <div class="flex h-10 w-10 items-center justify-center rounded-full bg-amber-50">
+            <div
+              class="flex h-10 w-10 items-center justify-center rounded-full bg-amber-50"
+            >
               <AlertCircle class="h-5 w-5 text-amber-500" />
             </div>
-            <h3 class="text-base font-semibold text-[#0A1628]">{{ t('transactions.confirmAdvance') }}</h3>
+            <h3 class="text-base font-semibold text-[#0A1628]">
+              {{ t("transactions.confirmAdvance") }}
+            </h3>
           </div>
           <p class="mb-2 text-sm text-[#64748B]">
             Bu işlem aşaması değiştirilecek.
           </p>
-          <div class="mb-6 flex items-center gap-3 rounded-xl border border-[#E2E8F0] bg-[#FAFBFC] p-3">
+          <div
+            class="mb-6 flex items-center gap-3 rounded-xl border border-[#E2E8F0] bg-[#FAFBFC] p-3"
+          >
             <span class="text-sm font-semibold text-[#0A1628]">
               {{ stageLabel(transaction.stage) }}
             </span>

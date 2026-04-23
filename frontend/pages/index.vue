@@ -1,12 +1,13 @@
 <script setup lang="ts">
-import { Plus, ArrowRight, Clock, Filter } from 'lucide-vue-next';
+import { Plus, ArrowRight, Clock, Filter } from "lucide-vue-next";
 import {
   STAGE_ORDER,
   STAGE_COLORS,
   type Stage,
   calculateCommission,
   timeAgo,
-} from '~/utils/demo-data';
+} from "~/utils/demo-data";
+import { toApiErrorInfo } from "~/utils/api-error";
 const tx = useTransactionsStore();
 const ui = useUiStore();
 const toast = useToastStore();
@@ -15,7 +16,7 @@ const { t } = useI18n();
 
 const draggingTransactionId = ref<string | null>(null);
 const dragOverStage = ref<Stage | null>(null);
-const activityType = ref<'all' | 'stage_change' | 'financial'>('all');
+const activityType = ref<"all" | "stage_change" | "financial">("all");
 const activityPage = ref(1);
 const activityPageSize = 6;
 
@@ -23,35 +24,39 @@ function getAgent(id: string) {
   return agents.findById(id);
 }
 
-const completed = computed(() => tx.transactions.filter((t) => t.stage === 'completed'));
-const active = computed(() => tx.transactions.filter((t) => t.stage !== 'completed'));
+const completed = computed(() =>
+  tx.transactions.filter((t) => t.stage === "completed")
+);
+const active = computed(() =>
+  tx.transactions.filter((t) => t.stage !== "completed")
+);
 const totalRevenue = computed(() =>
-  completed.value.reduce((s, t) => s + t.transactionValue, 0),
+  completed.value.reduce((s, t) => s + t.transactionValue, 0)
 );
 const pendingCommissions = computed(() =>
-  active.value.reduce((s, t) => s + calculateCommission(t).agentTotal, 0),
+  active.value.reduce((s, t) => s + calculateCommission(t).agentTotal, 0)
 );
 
 const metrics = computed(() => [
   {
-    label: t('dashboard.metrics.total'),
+    label: t("dashboard.metrics.total"),
     value: tx.transactions.length,
-    displayMode: 'plain' as const,
+    displayMode: "plain" as const,
   },
   {
-    label: t('dashboard.metrics.active'),
+    label: t("dashboard.metrics.active"),
     value: active.value.length,
-    displayMode: 'plain' as const,
+    displayMode: "plain" as const,
   },
   {
-    label: t('dashboard.metrics.completedVolume'),
+    label: t("dashboard.metrics.completedVolume"),
     value: totalRevenue.value,
-    displayMode: 'currency' as const,
+    displayMode: "currency" as const,
   },
   {
-    label: t('dashboard.metrics.pendingAgentShare'),
+    label: t("dashboard.metrics.pendingAgentShare"),
     value: pendingCommissions.value,
-    displayMode: 'currency' as const,
+    displayMode: "currency" as const,
   },
 ]);
 
@@ -61,23 +66,23 @@ const allActivity = computed(() =>
       t.activityLog.map((a) => ({
         ...a,
         transactionId: t.id,
-        address: t.propertyAddress.split(',')[0] ?? '',
-      })),
+        address: t.propertyAddress.split(",")[0] ?? "",
+      }))
     )
     .sort(
       (a, b) =>
-        new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime(),
-    ),
+        new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
+    )
 );
 
 const filteredActivity = computed(() =>
   allActivity.value.filter(
-    (entry) => activityType.value === 'all' || entry.type === activityType.value,
-  ),
+    (entry) => activityType.value === "all" || entry.type === activityType.value
+  )
 );
 
 const activityPageCount = computed(() =>
-  Math.max(1, Math.ceil(filteredActivity.value.length / activityPageSize)),
+  Math.max(1, Math.ceil(filteredActivity.value.length / activityPageSize))
 );
 
 const pagedActivity = computed(() => {
@@ -105,8 +110,8 @@ function stageLabel(stage: Stage) {
 function onDragStart(event: DragEvent, id: string) {
   draggingTransactionId.value = id;
   if (event.dataTransfer) {
-    event.dataTransfer.effectAllowed = 'move';
-    event.dataTransfer.setData('text/plain', id);
+    event.dataTransfer.effectAllowed = "move";
+    event.dataTransfer.setData("text/plain", id);
   }
 }
 
@@ -131,11 +136,10 @@ async function onDrop(stage: Stage) {
   try {
     await tx.setStage(transactionId, stage);
     await tx.fetchAll(true);
-    toast.success(t('dashboard.toastStageMoved', { stage: stageLabel(stage) }));
+    toast.success(t("dashboard.toastStageMoved", { stage: stageLabel(stage) }));
   } catch (error) {
-    const message =
-      error instanceof Error ? error.message : t('dashboard.toastStageError');
-    toast.error(message, 'Hata');
+    const err = toApiErrorInfo(error, t("dashboard.toastStageError"));
+    toast.error(err.message, err.title);
   }
 }
 
@@ -146,7 +150,7 @@ onMounted(async () => {
 const config = useRuntimeConfig();
 const { data: health, error: healthError } = await useFetch(
   () => `${config.public.apiBase}/health`,
-  { server: false, lazy: true },
+  { server: false, lazy: true }
 );
 </script>
 
@@ -161,17 +165,19 @@ const { data: health, error: healthError } = await useFetch(
           Panel
         </h1>
         <p class="mt-0.5 text-sm text-[#64748B]">
-          {{ t('dashboard.subtitle') }}
+          {{ t("dashboard.subtitle") }}
         </p>
         <p class="mt-2 text-xs text-slate-500">
-          {{ t('dashboard.apiHealth') }}
+          {{ t("dashboard.apiHealth") }}
           <span v-if="healthError" class="text-amber-700">{{
             healthError.message
           }}</span>
           <code v-else-if="health" class="text-emerald-800">{{
             JSON.stringify(health)
           }}</code>
-          <span v-else class="text-slate-400">{{ t('dashboard.apiLoading') }}</span>
+          <span v-else class="text-slate-400">{{
+            t("dashboard.apiLoading")
+          }}</span>
         </p>
       </div>
       <button
@@ -181,7 +187,7 @@ const { data: health, error: healthError } = await useFetch(
         @click="ui.openCreateTransaction()"
       >
         <Plus class="h-4 w-4" />
-        <span class="hidden sm:inline">{{ t('common.newTransaction') }}</span>
+        <span class="hidden sm:inline">{{ t("common.newTransaction") }}</span>
       </button>
     </div>
 
@@ -197,12 +203,14 @@ const { data: health, error: healthError } = await useFetch(
 
     <div class="min-w-0">
       <div class="mb-4 flex items-center justify-between">
-        <h2 class="text-lg font-semibold text-[#0A1628]">{{ t('dashboard.funnel') }}</h2>
+        <h2 class="text-lg font-semibold text-[#0A1628]">
+          {{ t("dashboard.funnel") }}
+        </h2>
         <NuxtLink
           to="/transactions"
           class="flex items-center gap-1 text-sm text-[#64748B] transition-colors hover:text-[#D4A853]"
         >
-          {{ t('dashboard.all') }}
+          {{ t("dashboard.all") }}
           <ArrowRight class="h-4 w-4" />
         </NuxtLink>
       </div>
@@ -213,7 +221,9 @@ const { data: health, error: healthError } = await useFetch(
           :key="stage"
           class="rounded-2xl border border-[#E2E8F0] p-3 transition-all"
           :class="dragOverStage === stage ? 'ring-2 ring-[#D4A853]/50' : ''"
-          :style="{ backgroundColor: dragOverStage === stage ? '#FFFAEF' : '#ffffff' }"
+          :style="{
+            backgroundColor: dragOverStage === stage ? '#FFFAEF' : '#ffffff',
+          }"
           @dragover.prevent="onDragOver(stage)"
           @dragleave="dragOverStage = null"
           @drop.prevent="onDrop(stage)"
@@ -242,7 +252,7 @@ const { data: health, error: healthError } = await useFetch(
               <div
                 class="rounded-xl border border-dashed border-[#E2E8F0] bg-white p-4 text-center text-sm text-[#94A3B8]"
               >
-                {{ t('dashboard.noTransaction') }}
+                {{ t("dashboard.noTransaction") }}
               </div>
             </template>
 
@@ -270,7 +280,9 @@ const { data: health, error: healthError } = await useFetch(
       <div class="mb-4 flex flex-wrap items-center justify-between gap-3">
         <div class="flex items-center gap-2">
           <Clock class="h-4 w-4 text-[#64748B]" />
-          <h2 class="text-lg font-semibold text-[#0A1628]">{{ t('dashboard.activity') }}</h2>
+          <h2 class="text-lg font-semibold text-[#0A1628]">
+            {{ t("dashboard.activity") }}
+          </h2>
         </div>
         <div class="flex items-center gap-2">
           <Filter class="h-4 w-4 text-[#94A3B8]" />
@@ -278,9 +290,13 @@ const { data: health, error: healthError } = await useFetch(
             v-model="activityType"
             class="rounded-lg border border-[#E2E8F0] bg-white px-3 py-1.5 text-xs text-[#0A1628] focus:border-[#D4A853] focus:outline-none"
           >
-            <option value="all">{{ t('dashboard.activityFilterAll') }}</option>
-            <option value="stage_change">{{ t('dashboard.activityFilterStage') }}</option>
-            <option value="financial">{{ t('dashboard.activityFilterFinancial') }}</option>
+            <option value="all">{{ t("dashboard.activityFilterAll") }}</option>
+            <option value="stage_change">
+              {{ t("dashboard.activityFilterStage") }}
+            </option>
+            <option value="financial">
+              {{ t("dashboard.activityFilterFinancial") }}
+            </option>
           </select>
         </div>
       </div>
@@ -288,11 +304,15 @@ const { data: health, error: healthError } = await useFetch(
         class="overflow-hidden rounded-2xl border border-[#E2E8F0] bg-white shadow-[0_1px_3px_rgba(0,0,0,0.06)]"
       >
         <div class="divide-y divide-[#F1F5F9]">
-          <div class="hidden bg-[#FAFBFC] px-4 py-2 text-[11px] font-semibold uppercase tracking-wide text-[#64748B] md:grid md:grid-cols-[180px_1fr_140px_90px]">
-            <span>{{ t('dashboard.activityTable.transaction') }}</span>
-            <span>{{ t('dashboard.activityTable.detail') }}</span>
-            <span>{{ t('dashboard.activityTable.type') }}</span>
-            <span class="text-right">{{ t('dashboard.activityTable.time') }}</span>
+          <div
+            class="hidden bg-[#FAFBFC] px-4 py-2 text-[11px] font-semibold uppercase tracking-wide text-[#64748B] md:grid md:grid-cols-[180px_1fr_140px_90px]"
+          >
+            <span>{{ t("dashboard.activityTable.transaction") }}</span>
+            <span>{{ t("dashboard.activityTable.detail") }}</span>
+            <span>{{ t("dashboard.activityTable.type") }}</span>
+            <span class="text-right">{{
+              t("dashboard.activityTable.time")
+            }}</span>
           </div>
           <NuxtLink
             v-for="(activity, idx) in pagedActivity"
@@ -316,9 +336,9 @@ const { data: health, error: healthError } = await useFetch(
                 "
               >
                 {{
-                  activity.type === 'stage_change'
-                    ? t('dashboard.activityType.stage')
-                    : t('dashboard.activityType.financial')
+                  activity.type === "stage_change"
+                    ? t("dashboard.activityType.stage")
+                    : t("dashboard.activityType.financial")
                 }}
               </span>
             </div>
@@ -332,10 +352,12 @@ const { data: health, error: healthError } = await useFetch(
             v-if="pagedActivity.length === 0"
             class="px-4 py-8 text-center text-sm text-[#94A3B8]"
           >
-            {{ t('dashboard.activityEmpty') }}
+            {{ t("dashboard.activityEmpty") }}
           </div>
         </div>
-        <div class="flex items-center justify-between border-t border-[#F1F5F9] px-4 py-3 text-xs text-[#64748B]">
+        <div
+          class="flex items-center justify-between border-t border-[#F1F5F9] px-4 py-3 text-xs text-[#64748B]"
+        >
           <span>
             {{ filteredActivity.length }} kayıttan
             {{
@@ -355,7 +377,7 @@ const { data: health, error: healthError } = await useFetch(
               :disabled="activityPage <= 1"
               @click="activityPage -= 1"
             >
-              {{ t('dashboard.pagination.prev') }}
+              {{ t("dashboard.pagination.prev") }}
             </button>
             <span>{{ activityPage }} / {{ activityPageCount }}</span>
             <button
@@ -364,7 +386,7 @@ const { data: health, error: healthError } = await useFetch(
               :disabled="activityPage >= activityPageCount"
               @click="activityPage += 1"
             >
-              {{ t('dashboard.pagination.next') }}
+              {{ t("dashboard.pagination.next") }}
             </button>
           </div>
         </div>

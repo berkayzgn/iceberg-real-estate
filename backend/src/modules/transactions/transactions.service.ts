@@ -1,4 +1,8 @@
-import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import {
@@ -69,9 +73,15 @@ export class TransactionsService {
     const current = txn.stage;
     const allowed = VALID_TRANSITIONS[current] ?? [];
     if (!allowed.includes(dto.stage)) {
-      throw new BadRequestException(
-        `Geçersiz aşama geçişi: ${current} -> ${dto.stage}`,
-      );
+      const currentLabel = this.stageLabel(current);
+      const targetLabel = this.stageLabel(dto.stage);
+      const nextLabel = allowed.length > 0 ? this.stageLabel(allowed[0]) : null;
+
+      const detail = nextLabel
+        ? `Bu işlem ${currentLabel} aşamasındayken doğrudan ${targetLabel} aşamasına geçirilemez. Önce ${nextLabel} aşamasına ilerletmelisiniz.`
+        : `Bu işlem ${currentLabel} aşamasında ve artık ilerletilemez.`;
+
+      throw new BadRequestException(`Bu işlem yapılamaz. ${detail}`);
     }
 
     txn.stageHistory.push({
@@ -109,7 +119,10 @@ export class TransactionsService {
   }
 
   private calculateCommissionBreakdown(
-    txn: Pick<Transaction, 'transactionValue' | 'listingAgent' | 'sellingAgent'>,
+    txn: Pick<
+      Transaction,
+      'transactionValue' | 'listingAgent' | 'sellingAgent'
+    >,
   ): CommissionBreakdown {
     const total = txn.transactionValue;
     const agencyShare = total * 0.5;
@@ -147,5 +160,19 @@ export class TransactionsService {
     if (!listing) throw new BadRequestException('İlan danışmanı bulunamadı.');
     if (!selling) throw new BadRequestException('Satış danışmanı bulunamadı.');
   }
-}
 
+  private stageLabel(stage: TransactionStage) {
+    switch (stage) {
+      case TransactionStage.AGREEMENT:
+        return 'Anlaşma';
+      case TransactionStage.EARNEST_MONEY:
+        return 'Kapora';
+      case TransactionStage.TITLE_DEED:
+        return 'Tapu';
+      case TransactionStage.COMPLETED:
+        return 'Tamamlandı';
+      default:
+        return stage;
+    }
+  }
+}

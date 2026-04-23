@@ -22,7 +22,7 @@
     "subtitle": "Demo kimlik bilgileriyle devam edin.",
     "email": "E-posta",
     "password": "Şifre",
-    "demoEmail": "admin@icebergdigital.co",
+    "demoEmail": "admin{'@'}icebergdigital.co",
     "passwordPlaceholder": "••••••••",
     "show": "Göster",
     "hide": "Gizle",
