@@ -143,7 +143,7 @@ export class ReportsService {
           listingAgentShare: agentTotal,
           sellingAgentShare: 0,
           sameAgent: true,
-          reason: 'Fallback calculation',
+          reason: 'Varsayılan hesaplama',
         }
       : {
           agencyShare,
@@ -151,7 +151,7 @@ export class ReportsService {
           listingAgentShare: agentTotal * 0.5,
           sellingAgentShare: agentTotal * 0.5,
           sameAgent: false,
-          reason: 'Fallback calculation',
+          reason: 'Varsayılan hesaplama',
         };
   }
 }

@@ -126,17 +126,17 @@ const rolePieOption = computed(() => ({
       labelLine: { show: false },
       data: [
         {
-          name: "Listing",
+          name: t("transactions.listing"),
           value: roleCounts.value.listingCount,
           itemStyle: { color: "#0A1628" },
         },
         {
-          name: "Selling",
+          name: t("transactions.selling"),
           value: roleCounts.value.sellingCount,
           itemStyle: { color: "#D4A853" },
         },
         {
-          name: "Dual",
+          name: t("agents.dual"),
           value: roleCounts.value.dualCount,
           itemStyle: { color: "#10B981" },
         },

@@ -1,6 +1,6 @@
 import { defineStore } from 'pinia';
-import type { Stage, Transaction } from '~/utils/demo-data';
-import { getNextStage, STAGE_LABELS, type ActivityEntry } from '~/utils/demo-data';
+import type { Stage, Transaction } from '~/utils/domain';
+import { getNextStage, STAGE_LABELS, type ActivityEntry } from '~/utils/domain';
 
 type ApiAgentRef = string | { _id: string };
 type ApiStageHistory = {
@@ -42,11 +42,11 @@ function mapActivityLog(tx: ApiTransaction): ActivityEntry[] {
       id: `al-${tx._id}-${index + 1}`,
       timestamp: entry.changedAt,
       type: 'stage_change' as const,
-      description:
+        description:
         entry.note ||
         (entry.fromStage === entry.toStage
-          ? 'Agreement signed. Transaction created.'
-          : `Aşama güncellendi: ${STAGE_LABELS[entry.fromStage]} -> ${STAGE_LABELS[entry.toStage]}`),
+          ? 'Anlaşma imzalandı. İşlem oluşturuldu.'
+          : `Aşama güncellendi: ${STAGE_LABELS[entry.fromStage]} → ${STAGE_LABELS[entry.toStage]}`),
       fromStage: entry.fromStage,
       toStage: entry.toStage,
     })) ?? [];
@@ -75,6 +75,7 @@ function mapTransaction(tx: ApiTransaction): Transaction {
     listingAgentId: mapAgentId(tx.listingAgent),
     sellingAgentId: mapAgentId(tx.sellingAgent),
     date: (tx.createdAt ?? new Date().toISOString()).slice(0, 10),
+    completedAt: tx.completedAt,
     activityLog: mapActivityLog(tx),
   };
 }

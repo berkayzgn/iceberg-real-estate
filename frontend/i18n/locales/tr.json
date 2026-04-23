@@ -97,8 +97,8 @@
     "agents50": "Danışman(lar) (%50)",
     "agentAssignments": "Danışman atamaları",
     "agency": "Ajans",
-    "listing": "Listing",
-    "selling": "Selling",
+    "listing": "İlan",
+    "selling": "Satış",
     "modalOpening": "Modal açılıyor… Eğer açılmadıysa"
   },
   "agents": {
@@ -119,10 +119,10 @@
     "earnings": "Kazanç",
     "completed": "Tamamlanan",
     "totalEarnings": "Toplam kazanç",
-    "listingSelling": "Listing / Selling",
+    "listingSelling": "İlan / Satış",
     "monthlyEarnings": "Aylık kazanç",
     "roleDistribution": "Rol dağılımı",
-    "dual": "Dual",
+    "dual": "Çift rol",
     "transactionHistory": "İşlem geçmişi",
     "noTransactionsYet": "Henüz işlem yok.",
     "validation": {
