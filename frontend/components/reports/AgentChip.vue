@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { Agent } from '~/utils/demo-data';
+import type { Agent } from '~/utils/domain';
 
 withDefaults(
   defineProps<{

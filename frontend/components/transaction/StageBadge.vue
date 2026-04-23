@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import type { Stage } from '~/utils/demo-data';
-import { STAGE_COLORS, STAGE_LABELS } from '~/utils/demo-data';
+import type { Stage } from '~/utils/domain';
+import { STAGE_COLORS, STAGE_LABELS } from '~/utils/domain';
 
 const props = withDefaults(
   defineProps<{ stage: Stage; size?: 'sm' | 'md' }>(),

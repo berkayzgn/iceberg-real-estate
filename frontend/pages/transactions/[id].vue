@@ -6,7 +6,7 @@ import {
   getNextStage,
   STAGE_COLORS,
   STAGE_ORDER,
-} from "~/utils/demo-data";
+} from "~/utils/domain";
 import { toApiErrorInfo } from "~/utils/api-error";
 import {
   ArrowLeft,
@@ -23,8 +23,19 @@ import {
 const tx = useTransactionsStore();
 const toast = useToastStore();
 const agents = useAgentsStore();
+const config = useRuntimeConfig();
 const loading = ref(true);
 const { t } = useI18n();
+
+type ApiBreakdown = {
+  agencyShare: number;
+  agentTotal: number;
+  listingAgentShare: number;
+  sellingAgentShare: number;
+  sameAgent: boolean;
+  reason: string;
+};
+const apiBreakdown = ref<ApiBreakdown | null>(null);
 
 const route = useRoute();
 const id = computed(() => route.params.id as string);
@@ -35,9 +46,22 @@ function agent(aid: string) {
   return agents.findById(aid);
 }
 
-const comm = computed(() =>
+const commLocal = computed(() =>
   transaction.value ? calculateCommission(transaction.value) : null
 );
+const comm = computed(() => {
+  if (apiBreakdown.value) {
+    return {
+      total: transaction.value?.transactionValue ?? 0,
+      company: apiBreakdown.value.agencyShare,
+      agentTotal: apiBreakdown.value.agentTotal,
+      listingAgent: apiBreakdown.value.listingAgentShare,
+      sellingAgent: apiBreakdown.value.sellingAgentShare,
+      isSameAgent: apiBreakdown.value.sameAgent,
+    };
+  }
+  return commLocal.value;
+});
 
 const nextStage = computed(() =>
   transaction.value ? getNextStage(transaction.value.stage) : null
@@ -87,9 +111,20 @@ const stageLabel = (stage: string) => t(`stages.${stage}`);
 
 onMounted(async () => {
   try {
-    if (!agents.loaded) await agents.fetchAll();
-    if (!tx.loaded) await tx.fetchAll();
+    await Promise.all([
+      agents.loaded ? Promise.resolve() : agents.fetchAll(),
+      tx.loaded ? Promise.resolve() : tx.fetchAll(),
+    ]);
     if (!tx.findById(id.value)) await tx.fetchById(id.value);
+    if (transaction.value?.stage === "completed") {
+      try {
+        apiBreakdown.value = await $fetch<ApiBreakdown>(
+          `${config.public.apiBase}/transactions/${id.value}/breakdown`
+        );
+      } catch {
+        // breakdown alınamazsa local hesaplamaya düş
+      }
+    }
   } finally {
     loading.value = false;
   }
@@ -503,7 +538,7 @@ onMounted(async () => {
             </span>
           </div>
           <p class="mb-5 text-xs text-[#94A3B8]">
-            Demo: işlem geçmişine bir kayıt eklenir.
+            Bu işlem aşamaya geçildikten sonra geri alınamaz.
           </p>
           <div class="flex gap-3">
             <button

@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import type { Agent, Transaction } from '~/utils/demo-data';
-import { calculateCommission, formatCurrency } from '~/utils/demo-data';
+import type { Agent, Transaction } from '~/utils/domain';
+import { calculateCommission, formatCurrency } from '~/utils/domain';
 
 const props = defineProps<{
   transaction: Transaction;

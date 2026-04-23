@@ -6,7 +6,7 @@ export class AppService {
     return {
       name: 'estate-agency-api',
       message: 'Emlak işlem API — system-guide.md',
-      docs: 'Swagger sonraki aşamalarda /api/docs',
+      docs: '/api/docs',
     };
   }
 

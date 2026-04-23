@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { formatCurrency } from '~/utils/demo-data';
+import { formatCurrency } from '~/utils/domain';
 
 const props = defineProps<{
   label: string;

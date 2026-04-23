@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { TrendingUp, Download, ChevronRight } from "lucide-vue-next";
-import { calculateCommission, formatCurrency } from "~/utils/demo-data";
+import { calculateCommission, formatCurrency } from "~/utils/domain";
 import { toApiErrorInfo } from "~/utils/api-error";
 const tx = useTransactionsStore();
 const agents = useAgentsStore();
@@ -37,7 +37,7 @@ const chartData = computed(() => {
       : (d: Date) => String(d.getFullYear());
 
   for (const txn of completed.value) {
-    const date = new Date(txn.date);
+    const date = new Date(txn.completedAt ?? txn.date);
     const key = formatter(date);
     const c = calculateCommission(txn);
     const prev = map.get(key) ?? { agencyShare: 0, agentShare: 0 };

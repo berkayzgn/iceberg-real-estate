@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ArrowRight, Plus } from "lucide-vue-next";
-import { getAgentStats, formatCurrency } from "~/utils/demo-data";
+import { getAgentStats, formatCurrency } from "~/utils/domain";
 import { toApiErrorInfo } from "~/utils/api-error";
 
 const tx = useTransactionsStore();

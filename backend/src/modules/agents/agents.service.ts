@@ -51,7 +51,7 @@ export class AgentsService {
   async remove(id: string) {
     const deleted = await this.agentModel.findByIdAndDelete(id).lean({ virtuals: true });
     if (!deleted) throw new NotFoundException('Danışman bulunamadı.');
-    return { ok: true, id };
+    return { success: true, id };
   }
 
   private isDuplicateEmailError(error: unknown) {

@@ -6,7 +6,7 @@ import {
   type Stage,
   calculateCommission,
   timeAgo,
-} from "~/utils/demo-data";
+} from "~/utils/domain";
 import { toApiErrorInfo } from "~/utils/api-error";
 const tx = useTransactionsStore();
 const ui = useUiStore();
@@ -121,6 +121,11 @@ function onDragEnd() {
 }
 
 function onDragOver(stage: Stage) {
+  // Sadece sürüklenen işlemin bir sonraki geçerli aşamasına drop izni ver
+  const current = draggingTransactionId.value
+    ? tx.findById(draggingTransactionId.value)
+    : null;
+  if (!current || getNextStage(current.stage) !== stage) return;
   dragOverStage.value = stage;
 }
 
@@ -132,6 +137,8 @@ async function onDrop(stage: Stage) {
   const current = tx.findById(transactionId);
   if (!current) return;
   if (current.stage === stage) return;
+  // Client-side guard: sadece geçerli sonraki aşamaya drop
+  if (getNextStage(current.stage) !== stage) return;
 
   try {
     await tx.setStage(transactionId, stage);

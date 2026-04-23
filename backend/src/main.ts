@@ -5,8 +5,10 @@ import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { AppModule } from './app.module';
 import { GlobalHttpExceptionFilter } from './common/filters/http-exception.filter';
 
-function parseCorsOrigins(): true | string[] {
+function parseCorsOrigins(): string[] {
   const raw = process.env.CORS_ORIGINS?.trim() ?? '';
+  const isProd = process.env.NODE_ENV === 'production';
+
   if (!raw) {
     // Local dev defaults (Nuxt)
     return [
@@ -16,7 +18,19 @@ function parseCorsOrigins(): true | string[] {
       'http://127.0.0.1:3001',
     ];
   }
-  if (raw === '*') return true;
+
+  if (raw === '*') {
+    if (isProd) {
+      // Production'da wildcard tehlikelidir; açık bir origin listesi tanımlayın.
+      console.warn(
+        '[CORS] CORS_ORIGINS=* is not allowed in production. Set explicit origins.',
+      );
+    }
+    // Dev'de wildcard izin verilir ama `origin: true` yerine explicit liste döndür;
+    // bu şekilde credentials + wildcard kombinasyonu çalışır.
+    return [];
+  }
+
   return raw
     .split(',')
     .map((s) => s.trim())
@@ -25,10 +39,13 @@ function parseCorsOrigins(): true | string[] {
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
+  const corsOrigins = parseCorsOrigins();
   app.enableCors({
-    origin: parseCorsOrigins(),
+    // Boş liste → tüm origin'leri blokla (prod'da CORS_ORIGINS=* kullanılmışsa)
+    origin: corsOrigins.length > 0 ? corsOrigins : false,
     methods: ['GET', 'POST', 'PATCH', 'PUT', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization'],
+    credentials: false,
   });
   app.setGlobalPrefix('api');
   app.useGlobalPipes(
@@ -40,13 +57,19 @@ async function bootstrap() {
   );
   app.useGlobalFilters(new GlobalHttpExceptionFilter());
 
-  const swaggerConfig = new DocumentBuilder()
-    .setTitle('Estate Agency API')
-    .setDescription('Agent, transaction and reporting endpoints')
-    .setVersion('1.0.0')
-    .build();
-  const swaggerDocument = SwaggerModule.createDocument(app, swaggerConfig);
-  SwaggerModule.setup('api/docs', app, swaggerDocument);
+  // Swagger sadece non-production ortamda açık; prod'da SWAGGER_ENABLED=true ile açılabilir.
+  const swaggerEnabled =
+    process.env.NODE_ENV !== 'production' ||
+    process.env.SWAGGER_ENABLED === 'true';
+  if (swaggerEnabled) {
+    const swaggerConfig = new DocumentBuilder()
+      .setTitle('Estate Agency API')
+      .setDescription('Agent, transaction and reporting endpoints')
+      .setVersion('1.0.0')
+      .build();
+    const swaggerDocument = SwaggerModule.createDocument(app, swaggerConfig);
+    SwaggerModule.setup('api/docs', app, swaggerDocument);
+  }
 
   const configService = app.get(ConfigService);
   const port = configService.get<number>('app.port') ?? 3002;

@@ -7,13 +7,13 @@ import {
   ChevronRight,
   Trash2,
 } from "lucide-vue-next";
-import type { PropertyType, Stage, Transaction } from "~/utils/demo-data";
+import type { PropertyType, Stage, Transaction } from "~/utils/domain";
 import {
   STAGE_ORDER,
   calculateCommission,
   formatCurrency,
   formatDate,
-} from "~/utils/demo-data";
+} from "~/utils/domain";
 import { toApiErrorInfo } from "~/utils/api-error";
 const tx = useTransactionsStore();
 const agents = useAgentsStore();

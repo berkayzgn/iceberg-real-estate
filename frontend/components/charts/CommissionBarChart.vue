@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import VChart from 'vue-echarts';
-import type { MonthlyData } from '~/utils/demo-data';
-import { formatCurrency } from '~/utils/demo-data';
+import type { MonthlyData } from '~/utils/domain';
+import { formatCurrency } from '~/utils/domain';
 const { t } = useI18n();
 
 const props = defineProps<{

@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { X, Building2, DollarSign, Users } from "lucide-vue-next";
-import type { Agent, PropertyType } from "~/utils/demo-data";
-import { formatCurrency } from "~/utils/demo-data";
+import type { Agent, PropertyType } from "~/utils/domain";
+import { formatCurrency } from "~/utils/domain";
 import { toApiErrorInfo } from "~/utils/api-error";
 
 const props = defineProps<{

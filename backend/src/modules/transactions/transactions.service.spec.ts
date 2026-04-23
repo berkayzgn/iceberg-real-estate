@@ -31,8 +31,59 @@ describe('TransactionsService', () => {
     );
   });
 
+  describe('updateStage — valid transitions', () => {
+    const validPairs: Array<[TransactionStage, TransactionStage]> = [
+      [TransactionStage.AGREEMENT, TransactionStage.EARNEST_MONEY],
+      [TransactionStage.EARNEST_MONEY, TransactionStage.TITLE_DEED],
+      [TransactionStage.TITLE_DEED, TransactionStage.COMPLETED],
+    ];
+
+    it.each(validPairs)('%s → %s is allowed', async (from, to) => {
+      const save = jest.fn().mockResolvedValue(undefined);
+      const txnDoc = {
+        stage: from,
+        stageHistory: [],
+        transactionValue: 500_000,
+        listingAgent: 'a1',
+        sellingAgent: 'a2',
+        completedAt: undefined,
+        commissionBreakdown: undefined,
+        save,
+      };
+      transactionModel.findById.mockResolvedValue(txnDoc);
+      jest.spyOn(service, 'findOne').mockResolvedValue({ _id: 'x', commissionBreakdown: null } as never);
+
+      await expect(service.updateStage('txn-x', { stage: to })).resolves.toBeDefined();
+      expect(save).toHaveBeenCalled();
+    });
+  });
+
+  describe('updateStage — invalid transitions', () => {
+    const invalidPairs: Array<[TransactionStage, TransactionStage]> = [
+      [TransactionStage.AGREEMENT, TransactionStage.TITLE_DEED],
+      [TransactionStage.AGREEMENT, TransactionStage.COMPLETED],
+      [TransactionStage.EARNEST_MONEY, TransactionStage.AGREEMENT],
+      [TransactionStage.EARNEST_MONEY, TransactionStage.COMPLETED],
+      [TransactionStage.TITLE_DEED, TransactionStage.AGREEMENT],
+      [TransactionStage.TITLE_DEED, TransactionStage.EARNEST_MONEY],
+      [TransactionStage.COMPLETED, TransactionStage.AGREEMENT],
+      [TransactionStage.COMPLETED, TransactionStage.EARNEST_MONEY],
+      [TransactionStage.COMPLETED, TransactionStage.TITLE_DEED],
+    ];
+
+    it.each(invalidPairs)('%s → %s is rejected', async (from, to) => {
+      transactionModel.findById.mockResolvedValue({
+        stage: from,
+        stageHistory: [],
+        save: jest.fn(),
+      });
+
+      await expect(service.updateStage('txn-x', { stage: to })).rejects.toBeInstanceOf(BadRequestException);
+    });
+  });
+
   describe('updateStage', () => {
-    it('rejects invalid transition', async () => {
+    it('rejects invalid transition (legacy)', async () => {
       transactionModel.findById.mockResolvedValue({
         stage: TransactionStage.AGREEMENT,
         stageHistory: [],

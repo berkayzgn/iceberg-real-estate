@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia';
-import type { Agent } from '~/utils/demo-data';
+import type { Agent } from '~/utils/domain';
 const AVATAR_COLORS = ['#3B82F6', '#8B5CF6', '#EC4899', '#10B981', '#F59E0B'] as const;
 
 function makeInitials(name: string) {
