@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import {
-  AGENTS,
   calculateCommission,
   formatCurrency,
   getAgentStats,
@@ -15,11 +14,14 @@ import {
   ArrowRight,
 } from 'lucide-vue-next';
 const tx = useTransactionsStore();
+const agents = useAgentsStore();
+const loading = ref(true);
+const { t } = useI18n();
 
 const route = useRoute();
 const id = computed(() => route.params.id as string);
 
-const agent = computed(() => AGENTS.find((a) => a.id === id.value));
+const agent = computed(() => agents.findById(id.value));
 
 const stats = computed(() =>
   agent.value ? getAgentStats(agent.value.id, tx.transactions) : null,
@@ -31,18 +33,32 @@ const agentTxns = computed(() =>
   ),
 );
 
-const MONTHS = ['Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec', 'Jan', 'Feb', 'Mar', 'Apr'] as const;
-const BASE_EARNINGS: Record<string, number[]> = {
-  a1: [8500, 11200, 7400, 14500, 12000, 16800, 15200, 22000, 17500, 9500],
-  a2: [12000, 9800, 15200, 18400, 11500, 21000, 18700, 26500, 19800, 13200],
-  a3: [5200, 7800, 9500, 8200, 14500, 12400, 11800, 15600, 13200, 8500],
-  a4: [3500, 5200, 4800, 7500, 8200, 9500, 8800, 12500, 10200, 6500],
-  a5: [9800, 12500, 8700, 15200, 10500, 18400, 14500, 20800, 16200, 10200],
-};
-
 const earningsSeries = computed(() => {
-  const arr = BASE_EARNINGS[id.value] ?? new Array(10).fill(0);
-  return MONTHS.map((m, i) => ({ month: m, earnings: arr[i] ?? 0 }));
+  const now = new Date();
+  const months: Array<{ key: string; label: string }> = [];
+  for (let i = 9; i >= 0; i -= 1) {
+    const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+    months.push({
+      key: `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`,
+      label: d.toLocaleDateString('en-GB', { month: 'short' }),
+    });
+  }
+
+  const earningsMap = new Map<string, number>();
+  for (const t of agentTxns.value) {
+    const c = calculateCommission(t);
+    const isDual = t.listingAgentId === id.value && t.sellingAgentId === id.value;
+    const isListing = t.listingAgentId === id.value;
+    const earned = isDual ? c.listingAgent : isListing ? c.listingAgent : c.sellingAgent;
+    const d = new Date(t.date);
+    const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+    earningsMap.set(key, (earningsMap.get(key) ?? 0) + earned);
+  }
+
+  return months.map((m) => ({
+    month: m.label,
+    earnings: earningsMap.get(m.key) ?? 0,
+  }));
 });
 
 const roleCounts = computed(() => {
@@ -83,7 +99,7 @@ const earningsLineOption = computed(() => ({
       if (!p) return '';
       return `<div class="rounded-xl border border-[#E2E8F0] bg-white p-3 shadow-lg text-sm">
         <p class="font-semibold text-[#0A1628] mb-1">${p.axisValue}</p>
-        <p class="text-[#64748B]">Kazanç: <span class="font-semibold text-[#0A1628]">${formatCurrency(Number(p.value) || 0)}</span></p>
+        <p class="text-[#64748B]">${t('agents.earnings')}: <span class="font-semibold text-[#0A1628]">${formatCurrency(Number(p.value) || 0)}</span></p>
       </div>`;
     },
   },
@@ -114,13 +130,25 @@ const earningsLineOption = computed(() => ({
     },
   ],
 }));
+
+onMounted(async () => {
+  try {
+    if (!agents.loaded) await agents.fetchAll();
+    if (!tx.loaded) await tx.fetchAll();
+  } finally {
+    loading.value = false;
+  }
+});
 </script>
 
 <template>
-  <div v-if="!agent" class="p-8">
-    <p class="text-[#64748B]">Danışman bulunamadı.</p>
+  <div v-if="loading" class="p-8">
+    <p class="text-[#64748B]">{{ t('common.loading') }}</p>
+  </div>
+  <div v-else-if="!agent" class="p-8">
+    <p class="text-[#64748B]">{{ t('common.notFound') }}</p>
     <NuxtLink to="/agents" class="mt-4 text-sm text-[#D4A853] hover:underline"
-      >Listeye dön</NuxtLink
+      >{{ t('common.backToList') }}</NuxtLink
     >
   </div>
   <div v-else class="mx-auto max-w-[1200px] p-6 lg:p-8">
@@ -129,7 +157,7 @@ const earningsLineOption = computed(() => ({
       class="mb-6 inline-flex items-center gap-2 text-sm text-[#64748B] transition-colors hover:text-[#0A1628]"
     >
       <ArrowLeft class="h-4 w-4" />
-      Danışmanlar
+      {{ t('common.agents') }}
     </NuxtLink>
 
     <div
@@ -160,14 +188,14 @@ const earningsLineOption = computed(() => ({
               <a
                 class="flex h-9 w-9 items-center justify-center rounded-xl bg-[#F1F5F9] text-[#64748B] transition-colors hover:bg-[#E2E8F0]"
                 :href="`mailto:${agent.email}`"
-                aria-label="Email"
+                :aria-label="t('login.email')"
               >
                 <Mail class="h-4 w-4" />
               </a>
               <a
                 class="flex h-9 w-9 items-center justify-center rounded-xl bg-[#F1F5F9] text-[#64748B] transition-colors hover:bg-[#E2E8F0]"
                 :href="`tel:${agent.phone}`"
-                aria-label="Phone"
+                :aria-label="t('agents.phone')"
               >
                 <Phone class="h-4 w-4" />
               </a>
@@ -177,26 +205,26 @@ const earningsLineOption = computed(() => ({
           <div class="mt-4 flex flex-wrap gap-4 text-sm text-[#64748B]">
             <span class="truncate">{{ agent.email }}</span>
             <span class="truncate">{{ agent.phone }}</span>
-            <span>Katılım: {{ agent.joinDate }}</span>
+            <span>{{ t('agents.joined') }}: {{ agent.joinDate }}</span>
           </div>
         </div>
       </div>
 
       <div v-if="stats" class="mt-6 grid grid-cols-2 gap-4 border-t border-[#F1F5F9] pt-5 sm:grid-cols-4">
         <div class="rounded-xl border border-[#E2E8F0] bg-[#FAFBFC] p-3 text-center">
-          <p class="mb-1 text-xs text-[#64748B]">Toplam işlem</p>
+          <p class="mb-1 text-xs text-[#64748B]">{{ t('dashboard.metrics.total') }}</p>
           <p class="text-lg font-bold text-[#0A1628]">{{ stats.totalTransactions }}</p>
         </div>
         <div class="rounded-xl border border-[#E2E8F0] bg-[#FAFBFC] p-3 text-center">
-          <p class="mb-1 text-xs text-[#64748B]">Tamamlanan</p>
+          <p class="mb-1 text-xs text-[#64748B]">{{ t('agents.completed') }}</p>
           <p class="text-lg font-bold text-[#10B981]">{{ stats.completedTransactions }}</p>
         </div>
         <div class="rounded-xl border border-[#E2E8F0] bg-[#FAFBFC] p-3 text-center">
-          <p class="mb-1 text-xs text-[#64748B]">Toplam kazanç</p>
+          <p class="mb-1 text-xs text-[#64748B]">{{ t('agents.totalEarnings') }}</p>
           <p class="text-lg font-bold text-[#D4A853]">{{ formatCurrency(stats.totalEarnings) }}</p>
         </div>
         <div class="rounded-xl border border-[#E2E8F0] bg-[#FAFBFC] p-3 text-center">
-          <p class="mb-1 text-xs text-[#64748B]">Listing / Selling</p>
+          <p class="mb-1 text-xs text-[#64748B]">{{ t('agents.listingSelling') }}</p>
           <p class="text-lg font-bold text-[#0A1628]">
             {{ roleCounts.listingCount }} / {{ roleCounts.sellingCount }}
           </p>
@@ -208,13 +236,13 @@ const earningsLineOption = computed(() => ({
       <div class="rounded-2xl border border-[#E2E8F0] bg-white p-6 shadow-[0_1px_3px_rgba(0,0,0,0.06)] lg:col-span-2">
         <div class="mb-5 flex items-center gap-2">
           <TrendingUp class="h-4 w-4 text-[#D4A853]" />
-          <h3 class="text-base font-semibold text-[#0A1628]">Aylık kazanç</h3>
+          <h3 class="text-base font-semibold text-[#0A1628]">{{ t('agents.monthlyEarnings') }}</h3>
         </div>
         <ClientOnly>
           <VChart class="h-[180px] w-full" :option="earningsLineOption" autoresize />
           <template #fallback>
             <div class="flex h-[180px] items-center justify-center rounded-lg bg-slate-50 text-sm text-slate-400">
-              Grafik yükleniyor…
+              {{ t('reports.chartLoading') }}
             </div>
           </template>
         </ClientOnly>
@@ -223,13 +251,13 @@ const earningsLineOption = computed(() => ({
       <div class="rounded-2xl border border-[#E2E8F0] bg-white p-6 shadow-[0_1px_3px_rgba(0,0,0,0.06)]">
         <div class="mb-5 flex items-center gap-2">
           <Award class="h-4 w-4 text-[#D4A853]" />
-          <h3 class="text-base font-semibold text-[#0A1628]">Rol dağılımı</h3>
+          <h3 class="text-base font-semibold text-[#0A1628]">{{ t('agents.roleDistribution') }}</h3>
         </div>
         <ClientOnly>
           <VChart class="h-[140px] w-full" :option="rolePieOption" autoresize />
           <template #fallback>
             <div class="flex h-[140px] items-center justify-center rounded-lg bg-slate-50 text-sm text-slate-400">
-              Grafik yükleniyor…
+              {{ t('reports.chartLoading') }}
             </div>
           </template>
         </ClientOnly>
@@ -238,21 +266,21 @@ const earningsLineOption = computed(() => ({
           <div v-if="roleCounts.listingCount" class="flex items-center justify-between">
             <div class="flex items-center gap-2">
               <div class="h-2.5 w-2.5 rounded-full" style="background-color:#0a1628" />
-              <span class="text-[#64748B]">Listing</span>
+              <span class="text-[#64748B]">{{ t('transactions.listing') }}</span>
             </div>
             <span class="font-semibold text-[#0A1628]">{{ roleCounts.listingCount }}</span>
           </div>
           <div v-if="roleCounts.sellingCount" class="flex items-center justify-between">
             <div class="flex items-center gap-2">
               <div class="h-2.5 w-2.5 rounded-full" style="background-color:#d4a853" />
-              <span class="text-[#64748B]">Selling</span>
+              <span class="text-[#64748B]">{{ t('transactions.selling') }}</span>
             </div>
             <span class="font-semibold text-[#0A1628]">{{ roleCounts.sellingCount }}</span>
           </div>
           <div v-if="roleCounts.dualCount" class="flex items-center justify-between">
             <div class="flex items-center gap-2">
               <div class="h-2.5 w-2.5 rounded-full" style="background-color:#10b981" />
-              <span class="text-[#64748B]">Dual</span>
+              <span class="text-[#64748B]">{{ t('agents.dual') }}</span>
             </div>
             <span class="font-semibold text-[#0A1628]">{{ roleCounts.dualCount }}</span>
           </div>
@@ -261,10 +289,10 @@ const earningsLineOption = computed(() => ({
     </div>
 
     <div class="rounded-2xl border border-[#E2E8F0] bg-white p-6 shadow-[0_1px_3px_rgba(0,0,0,0.06)]">
-      <h3 class="mb-4 text-base font-semibold text-[#0A1628]">İşlem geçmişi</h3>
+      <h3 class="mb-4 text-base font-semibold text-[#0A1628]">{{ t('agents.transactionHistory') }}</h3>
 
       <p v-if="agentTxns.length === 0" class="py-8 text-center text-sm text-[#94A3B8]">
-        Henüz işlem yok.
+        {{ t('agents.noTransactionsYet') }}
       </p>
 
       <div v-else class="divide-y divide-[#F1F5F9]">
@@ -292,10 +320,10 @@ const earningsLineOption = computed(() => ({
               >
                 {{
                   t.listingAgentId === id && t.sellingAgentId === id
-                    ? 'Dual'
+                    ? t('agents.dual')
                     : t.listingAgentId === id
-                      ? 'Listing'
-                      : 'Selling'
+                      ? t('transactions.listing')
+                      : t('transactions.selling')
                 }}
               </span>
             </div>

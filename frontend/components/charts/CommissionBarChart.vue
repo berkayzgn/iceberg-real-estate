@@ -2,6 +2,7 @@
 import VChart from 'vue-echarts';
 import type { MonthlyData } from '~/utils/demo-data';
 import { formatCurrency } from '~/utils/demo-data';
+const { t } = useI18n();
 
 const props = defineProps<{
   chartData: MonthlyData[];
@@ -45,7 +46,7 @@ const option = computed(() => ({
         <p class="font-semibold text-[#0A1628] mb-2">${label}</p>
         ${rows}
         <div class="border-t border-[#F1F5F9] mt-2 pt-2 flex justify-between">
-          <span class="text-[#64748B]">Toplam:</span>
+          <span class="text-[#64748B]">${t('reports.total')}:</span>
           <span class="font-bold text-[#0A1628]">${formatCurrency(sum)}</span>
         </div>
       </div>`;
@@ -102,7 +103,7 @@ const option = computed(() => ({
     <VChart class="h-[280px] w-full" :option="option" autoresize />
     <template #fallback>
       <div class="flex h-[280px] w-full items-center justify-center rounded-lg bg-slate-50 text-sm text-slate-400">
-        Grafik yükleniyor…
+        {{ t('reports.chartLoading') }}
       </div>
     </template>
   </ClientOnly>

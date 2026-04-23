@@ -1,76 +1,186 @@
 import { defineStore } from 'pinia';
 import type { Stage, Transaction } from '~/utils/demo-data';
-import { getNextStage, TRANSACTIONS } from '~/utils/demo-data';
+import { getNextStage, STAGE_LABELS, type ActivityEntry } from '~/utils/demo-data';
 
-function cloneTransactions(seed: Transaction[]): Transaction[] {
-  // demo state should be mutable without touching module constants
-  return seed.map((t) => ({
-    ...t,
-    activityLog: t.activityLog.map((a) => ({ ...a })),
-  }));
+type ApiAgentRef = string | { _id: string };
+type ApiStageHistory = {
+  fromStage: Stage;
+  toStage: Stage;
+  changedAt: string;
+  note?: string;
+};
+type ApiBreakdown = {
+  agencyShare: number;
+  agentTotal: number;
+  listingAgentShare: number;
+  sellingAgentShare: number;
+  sameAgent: boolean;
+  reason: string;
+};
+type ApiTransaction = {
+  _id: string;
+  propertyAddress: string;
+  propertyType: 'sale' | 'rental';
+  transactionValue: number;
+  stage: Stage;
+  listingAgent: ApiAgentRef;
+  sellingAgent: ApiAgentRef;
+  stageHistory?: ApiStageHistory[];
+  commissionBreakdown?: ApiBreakdown;
+  completedAt?: string;
+  createdAt?: string;
+};
+
+function mapAgentId(input: ApiAgentRef) {
+  if (typeof input === 'string') return input;
+  return String(input?._id ?? '');
+}
+
+function mapActivityLog(tx: ApiTransaction): ActivityEntry[] {
+  const stageEntries =
+    tx.stageHistory?.map((entry, index) => ({
+      id: `al-${tx._id}-${index + 1}`,
+      timestamp: entry.changedAt,
+      type: 'stage_change' as const,
+      description:
+        entry.note ||
+        (entry.fromStage === entry.toStage
+          ? 'Agreement signed. Transaction created.'
+          : `Aşama güncellendi: ${STAGE_LABELS[entry.fromStage]} -> ${STAGE_LABELS[entry.toStage]}`),
+      fromStage: entry.fromStage,
+      toStage: entry.toStage,
+    })) ?? [];
+
+  if (tx.commissionBreakdown) {
+    stageEntries.push({
+      id: `al-${tx._id}-financial`,
+      timestamp: tx.completedAt ?? tx.createdAt ?? new Date().toISOString(),
+      type: 'financial',
+      description: tx.commissionBreakdown.reason,
+    });
+  }
+
+  return stageEntries.sort(
+    (a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime(),
+  );
+}
+
+function mapTransaction(tx: ApiTransaction): Transaction {
+  return {
+    id: String(tx._id),
+    propertyAddress: tx.propertyAddress,
+    propertyType: tx.propertyType,
+    transactionValue: tx.transactionValue,
+    stage: tx.stage,
+    listingAgentId: mapAgentId(tx.listingAgent),
+    sellingAgentId: mapAgentId(tx.sellingAgent),
+    date: (tx.createdAt ?? new Date().toISOString()).slice(0, 10),
+    activityLog: mapActivityLog(tx),
+  };
 }
 
 export const useTransactionsStore = defineStore('transactions', () => {
-  const transactions = ref<Transaction[]>(cloneTransactions(TRANSACTIONS));
+  const transactions = ref<Transaction[]>([]);
+  const loading = ref(false);
+  const loaded = ref(false);
+
+  const apiBase = () => useRuntimeConfig().public.apiBase;
 
   function findById(id: string) {
     return transactions.value.find((t) => t.id === id);
   }
 
-  function addTransaction(input: Omit<Transaction, 'activityLog'> & { activityLog?: Transaction['activityLog'] }) {
-    const now = new Date().toISOString();
-    const activityLog =
-      input.activityLog ??
-      [
-        {
-          id: `al-${input.id}-1`,
-          timestamp: now,
-          type: 'stage_change' as const,
-          description: 'Agreement signed. Transaction created.',
-          toStage: input.stage,
-        },
-      ];
-
-    transactions.value.unshift({
-      ...input,
-      activityLog,
-    });
+  function upsertTransaction(mapped: Transaction) {
+    const idx = transactions.value.findIndex((t) => t.id === mapped.id);
+    if (idx === -1) {
+      transactions.value.unshift(mapped);
+      return mapped;
+    }
+    transactions.value[idx] = mapped;
+    return mapped;
   }
 
-  function advanceStage(id: string) {
+  async function fetchAll(force = false) {
+    if (loading.value) return;
+    if (loaded.value && !force) return;
+    loading.value = true;
+    try {
+      const list = await $fetch<ApiTransaction[]>(`${apiBase()}/transactions`);
+      transactions.value = list.map(mapTransaction);
+      loaded.value = true;
+    } finally {
+      loading.value = false;
+    }
+  }
+
+  async function fetchById(id: string) {
+    const tx = await $fetch<ApiTransaction>(`${apiBase()}/transactions/${id}`);
+    return upsertTransaction(mapTransaction(tx));
+  }
+
+  async function addTransaction(
+    input: Omit<Transaction, 'id' | 'stage' | 'date' | 'activityLog'>,
+  ) {
+    const created = await $fetch<ApiTransaction>(`${apiBase()}/transactions`, {
+      method: 'POST',
+      body: {
+        propertyAddress: input.propertyAddress,
+        propertyType: input.propertyType,
+        transactionValue: input.transactionValue,
+        listingAgent: input.listingAgentId,
+        sellingAgent: input.sellingAgentId,
+      },
+    });
+    loaded.value = true;
+    return upsertTransaction(mapTransaction(created));
+  }
+
+  async function advanceStage(id: string) {
     const t = findById(id);
-    if (!t) return;
+    if (!t) return null;
     const next = getNextStage(t.stage);
-    if (!next) return;
-
-    const now = new Date().toISOString();
-    const from = t.stage;
-    t.stage = next;
-    t.activityLog.push({
-      id: `al-${t.id}-${t.activityLog.length + 1}`,
-      timestamp: now,
-      type: 'stage_change',
-      description:
-        next === 'completed'
-          ? 'Transaction completed. Commission disbursed.'
-          : 'Stage advanced.',
-      fromStage: from,
-      toStage: next,
+    if (!next) return null;
+    const updated = await $fetch<ApiTransaction>(`${apiBase()}/transactions/${id}/stage`, {
+      method: 'PATCH',
+      body: { stage: next },
     });
+    return upsertTransaction(mapTransaction(updated));
   }
 
-  function setStage(id: string, stage: Stage) {
+  async function setStage(id: string, stage: Stage) {
     const t = findById(id);
-    if (!t) return;
-    t.stage = stage;
+    if (!t) return null;
+    if (t.stage === stage) return t;
+    const updated = await $fetch<ApiTransaction>(`${apiBase()}/transactions/${id}/stage`, {
+      method: 'PATCH',
+      body: { stage, note: 'Stage updated via board drag and drop.' },
+    });
+    return upsertTransaction(mapTransaction(updated));
+  }
+
+  async function removeTransaction(id: string) {
+    await $fetch(`${apiBase()}/transactions/${id}`, { method: 'DELETE' });
+    transactions.value = transactions.value.filter((t) => t.id !== id);
+  }
+
+  function clear() {
+    transactions.value = [];
+    loaded.value = false;
+    loading.value = false;
   }
 
   return {
     transactions,
+    loading,
+    loaded,
     findById,
+    fetchAll,
+    fetchById,
     addTransaction,
     advanceStage,
     setStage,
+    removeTransaction,
+    clear,
   };
 });
 

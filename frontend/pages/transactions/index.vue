@@ -5,19 +5,22 @@ import {
   ArrowUpDown,
   FileX,
   ChevronRight,
+  Trash2,
 } from 'lucide-vue-next';
 import type { PropertyType, Stage, Transaction } from '~/utils/demo-data';
 import {
-  AGENTS,
   STAGE_ORDER,
   calculateCommission,
   formatCurrency,
   formatDate,
 } from '~/utils/demo-data';
 const tx = useTransactionsStore();
+const agents = useAgentsStore();
+const toast = useToastStore();
+const { t } = useI18n();
 
 function getAgent(id: string) {
-  return AGENTS.find((a) => a.id === id);
+  return agents.findById(id);
 }
 
 type SortKey = 'date' | 'transactionValue' | 'stage';
@@ -75,6 +78,18 @@ function clearFilters() {
   agentFilter.value = 'all';
   typeFilter.value = 'all';
 }
+
+async function removeTxn(id: string) {
+  const ok = window.confirm(t('common.confirmDelete'));
+  if (!ok) return;
+  try {
+    await tx.removeTransaction(id);
+    toast.success(t('common.delete'), t('common.panel'));
+  } catch (error) {
+    const message = error instanceof Error ? error.message : t('transactions.deleteError');
+    toast.error(message, 'Hata');
+  }
+}
 </script>
 
 <template>
@@ -88,7 +103,7 @@ function clearFilters() {
           İşlemler
         </h1>
         <p class="mt-0.5 text-sm text-[#64748B]">
-          {{ tx.transactions.length }} kayıt (demo).
+          {{ tx.transactions.length }} kayıt.
         </p>
       </div>
     </div>
@@ -102,7 +117,7 @@ function clearFilters() {
           <input
             v-model="search"
             class="w-full rounded-lg border border-[#E2E8F0] bg-[#FAFBFC] py-2 pl-9 pr-4 text-sm text-[#0A1628] placeholder-[#94A3B8] transition-all focus:border-[#D4A853] focus:outline-none focus:ring-2 focus:ring-[#D4A853]/20"
-            placeholder="Adres veya referans ara…"
+            :placeholder="t('transactions.searchPlaceholder')"
           />
         </div>
 
@@ -112,9 +127,9 @@ function clearFilters() {
             v-model="stageFilter"
             class="cursor-pointer rounded-lg border border-[#E2E8F0] bg-[#FAFBFC] px-3 py-2 text-sm text-[#0A1628] transition-all focus:border-[#D4A853] focus:outline-none"
           >
-            <option value="all">Tüm aşamalar</option>
+            <option value="all">{{ t('transactions.allStages') }}</option>
             <option v-for="s in STAGE_ORDER" :key="s" :value="s">
-              {{ s === 'agreement' ? 'Anlaşma' : s === 'earnest_money' ? 'Kapora' : s === 'title_deed' ? 'Tapu' : 'Tamamlandı' }}
+              {{ t(`stages.${s}`) }}
             </option>
           </select>
         </div>
@@ -123,24 +138,30 @@ function clearFilters() {
           v-model="agentFilter"
           class="cursor-pointer rounded-lg border border-[#E2E8F0] bg-[#FAFBFC] px-3 py-2 text-sm text-[#0A1628] transition-all focus:border-[#D4A853] focus:outline-none"
         >
-          <option value="all">Tüm danışmanlar</option>
-          <option v-for="a in AGENTS" :key="a.id" :value="a.id">{{ a.name }}</option>
+          <option value="all">{{ t('transactions.allAgents') }}</option>
+          <option v-for="a in agents.agents" :key="a.id" :value="a.id">{{ a.name }}</option>
         </select>
 
         <div class="flex overflow-hidden rounded-lg border border-[#E2E8F0] text-sm">
           <button
-            v-for="t in (['all', 'sale', 'rental'] as const)"
-            :key="t"
+            v-for="typeOpt in (['all', 'sale', 'rental'] as const)"
+            :key="typeOpt"
             type="button"
             class="px-3 py-2 transition-colors"
             :class="
-              typeFilter === t
+              typeFilter === typeOpt
                 ? 'bg-[#0A1628] text-white'
                 : 'text-[#64748B] hover:bg-[#F1F5F9]'
             "
-            @click="typeFilter = t"
+            @click="typeFilter = typeOpt"
           >
-            {{ t === 'all' ? 'Tümü' : t === 'sale' ? 'Satış' : 'Kiralama' }}
+            {{
+              typeOpt === 'all'
+                ? t('dashboard.all')
+                : typeOpt === 'sale'
+                  ? t('transactions.sale')
+                  : t('transactions.rental')
+            }}
           </button>
         </div>
       </div>
@@ -154,15 +175,15 @@ function clearFilters() {
           <FileX class="h-8 w-8 text-[#CBD5E1]" />
         </div>
         <div class="text-center">
-          <h3 class="text-base font-semibold text-[#0A1628]">Sonuç bulunamadı</h3>
-          <p class="mt-1 text-sm text-[#64748B]">Filtreleri temizleyip tekrar deneyin.</p>
+          <h3 class="text-base font-semibold text-[#0A1628]">{{ t('transactions.noResults') }}</h3>
+          <p class="mt-1 text-sm text-[#64748B]">{{ t('transactions.noResultsHint') }}</p>
         </div>
         <button
           type="button"
           class="rounded-lg border border-[#E2E8F0] px-4 py-2 text-sm font-medium text-[#64748B] transition-colors hover:bg-[#F1F5F9]"
           @click="clearFilters"
         >
-          Filtreleri temizle
+          {{ t('transactions.clearFilters') }}
         </button>
       </div>
     </div>
@@ -175,7 +196,7 @@ function clearFilters() {
           <thead>
             <tr class="border-b border-[#F1F5F9] bg-[#FAFBFC]">
               <th class="px-5 py-3.5 text-left">
-                <span class="text-xs font-semibold uppercase tracking-wider text-[#64748B]">Mülk</span>
+                <span class="text-xs font-semibold uppercase tracking-wider text-[#64748B]">{{ t('transactions.property') }}</span>
               </th>
               <th class="px-4 py-3.5 text-left">
                 <button
@@ -205,17 +226,17 @@ function clearFilters() {
               </th>
               <th class="px-4 py-3.5 text-left">
                 <span class="whitespace-nowrap text-xs font-semibold uppercase tracking-wider text-[#64748B]"
-                  >İlan danışmanı</span
+                  >{{ t('transactions.listingAgent') }}</span
                 >
               </th>
               <th class="px-4 py-3.5 text-left">
                 <span class="whitespace-nowrap text-xs font-semibold uppercase tracking-wider text-[#64748B]"
-                  >Satış danışmanı</span
+                  >{{ t('transactions.sellingAgent') }}</span
                 >
               </th>
               <th class="px-4 py-3.5 text-left">
                 <span class="whitespace-nowrap text-xs font-semibold uppercase tracking-wider text-[#64748B]"
-                  >Komisyon</span
+                  >{{ t('transactions.commission') }}</span
                 >
               </th>
               <th class="px-4 py-3.5 text-left">
@@ -256,7 +277,7 @@ function clearFilters() {
                           : 'bg-purple-50 text-purple-600'
                       "
                     >
-                      {{ txn.propertyType === 'sale' ? 'Satış' : 'Kiralama' }}
+                      {{ txn.propertyType === 'sale' ? t('transactions.sale') : t('transactions.rental') }}
                     </span>
                   </div>
                 </div>
@@ -274,7 +295,7 @@ function clearFilters() {
                 <span
                   v-if="txn.listingAgentId === txn.sellingAgentId"
                   class="text-xs italic text-[#94A3B8]"
-                  >Aynı danışman</span
+                  >{{ t('transactions.sameAgent') }}</span
                 >
                 <ReportsAgentChip
                   v-else-if="getAgent(txn.sellingAgentId)"
@@ -291,9 +312,19 @@ function clearFilters() {
                 {{ formatDate(txn.date) }}
               </td>
               <td class="px-4 py-4">
-                <ChevronRight
-                  class="h-4 w-4 text-[#CBD5E1] transition-colors group-hover:text-[#D4A853]"
-                />
+                <div class="flex items-center justify-end gap-2">
+                  <button
+                    type="button"
+                    class="rounded-md p-1.5 text-[#94A3B8] transition-colors hover:bg-red-50 hover:text-red-600"
+                    :title="t('common.delete')"
+                    @click.stop="removeTxn(txn.id)"
+                  >
+                    <Trash2 class="h-4 w-4" />
+                  </button>
+                  <ChevronRight
+                    class="h-4 w-4 text-[#CBD5E1] transition-colors group-hover:text-[#D4A853]"
+                  />
+                </div>
               </td>
             </tr>
           </tbody>
@@ -319,11 +350,21 @@ function clearFilters() {
           <div class="flex items-center justify-between">
             <ReportsAgentChip v-if="getAgent(txn.listingAgentId)" :agent="getAgent(txn.listingAgentId)!" size="sm" />
             <div class="text-right">
-              <p class="text-xs text-[#64748B]">Komisyon</p>
+              <p class="text-xs text-[#64748B]">{{ t('transactions.commission') }}</p>
               <p class="text-sm font-bold text-[#D4A853]">
                 {{ formatCurrency(calculateCommission(txn).agentTotal) }}
               </p>
             </div>
+          </div>
+          <div class="mt-3 border-t border-[#F1F5F9] pt-3">
+            <button
+              type="button"
+              class="inline-flex items-center gap-1 text-xs font-medium text-red-600"
+              @click.stop="removeTxn(txn.id)"
+            >
+              <Trash2 class="h-3.5 w-3.5" />
+              {{ t('common.delete') }}
+            </button>
           </div>
         </div>
       </div>

@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { X, Building2, DollarSign, Users } from 'lucide-vue-next';
 import type { Agent, PropertyType } from '~/utils/demo-data';
-import { AGENTS, formatCurrency } from '~/utils/demo-data';
+import { formatCurrency } from '~/utils/demo-data';
 
 const props = defineProps<{
   open: boolean;
@@ -14,6 +14,11 @@ const emit = defineEmits<{
 
 const tx = useTransactionsStore();
 const toast = useToastStore();
+const agents = useAgentsStore();
+const { t } = useI18n();
+const NEW_AGENT_VALUE = '__new_agent__';
+const showAddAgentModal = ref(false);
+const addAgentTarget = ref<'listing' | 'selling'>('listing');
 
 const form = reactive({
   propertyAddress: '',
@@ -40,7 +45,29 @@ const sellingAgentShare = computed(() =>
 );
 
 function agent(id: string): Agent | undefined {
-  return AGENTS.find((a) => a.id === id);
+  return agents.findById(id);
+}
+
+function openAddAgent(target: 'listing' | 'selling') {
+  addAgentTarget.value = target;
+  showAddAgentModal.value = true;
+}
+
+function onListingAgentChange() {
+  if (form.listingAgentId !== NEW_AGENT_VALUE) return;
+  form.listingAgentId = '';
+  openAddAgent('listing');
+}
+
+function onSellingAgentChange() {
+  if (form.sellingAgentId !== NEW_AGENT_VALUE) return;
+  form.sellingAgentId = '';
+  openAddAgent('selling');
+}
+
+function onAgentCreated(id: string) {
+  if (addAgentTarget.value === 'listing') form.listingAgentId = id;
+  if (addAgentTarget.value === 'selling') form.sellingAgentId = id;
 }
 
 function reset() {
@@ -54,32 +81,37 @@ function reset() {
 
 function validate() {
   for (const k of Object.keys(errors)) delete errors[k];
-  if (!form.propertyAddress.trim()) errors.propertyAddress = 'Adres zorunlu.';
-  if (!form.transactionValue || value.value <= 0) errors.transactionValue = 'Tutar zorunlu.';
-  if (!form.listingAgentId) errors.listingAgentId = 'İlan danışmanı seçin.';
-  if (!form.sellingAgentId) errors.sellingAgentId = 'Satış danışmanı seçin.';
+  if (!form.propertyAddress.trim())
+    errors.propertyAddress = t('createTransaction.validation.addressRequired');
+  if (!form.transactionValue || value.value <= 0)
+    errors.transactionValue = t('createTransaction.validation.amountRequired');
+  if (!form.listingAgentId)
+    errors.listingAgentId = t('createTransaction.validation.listingRequired');
+  if (!form.sellingAgentId)
+    errors.sellingAgentId = t('createTransaction.validation.sellingRequired');
   return Object.keys(errors).length === 0;
 }
 
-function create() {
+async function create() {
   if (!validate()) return;
+  try {
+    const created = await tx.addTransaction({
+      propertyAddress: form.propertyAddress,
+      propertyType: form.propertyType,
+      transactionValue: value.value,
+      listingAgentId: form.listingAgentId,
+      sellingAgentId: form.sellingAgentId,
+    });
 
-  const newId = `T${String(Math.floor(Math.random() * 900) + 100)}`;
-  tx.addTransaction({
-    id: newId,
-    propertyAddress: form.propertyAddress,
-    propertyType: form.propertyType,
-    transactionValue: value.value,
-    stage: 'agreement',
-    listingAgentId: form.listingAgentId,
-    sellingAgentId: form.sellingAgentId,
-    date: new Date().toISOString().slice(0, 10),
-  });
-
-  emit('created', newId);
-  toast.success('İşlem oluşturuldu.', 'Başarılı');
-  reset();
-  emit('close');
+    emit('created', created.id);
+    toast.success(t('createTransaction.created'), t('common.panel'));
+    reset();
+    emit('close');
+  } catch (error) {
+    const message =
+      error instanceof Error ? error.message : t('createTransaction.createError');
+    toast.error(message, t('common.notFound'));
+  }
 }
 
 watch(
@@ -99,13 +131,13 @@ watch(
     >
       <div class="flex items-center justify-between border-b border-[#E2E8F0] px-6 py-5">
         <div>
-          <h2 class="text-base font-semibold text-[#0A1628]">Yeni işlem</h2>
-          <p class="mt-0.5 text-sm text-[#64748B]">Demo oluşturma (API sonrası bağlanacak).</p>
+          <h2 class="text-base font-semibold text-[#0A1628]">{{ t('createTransaction.title') }}</h2>
+          <p class="mt-0.5 text-sm text-[#64748B]">{{ t('createTransaction.subtitle') }}</p>
         </div>
         <button
           type="button"
           class="flex h-9 w-9 items-center justify-center rounded-lg text-[#64748B] transition-colors hover:bg-[#F1F5F9]"
-          aria-label="Kapat"
+          :aria-label="t('common.close')"
           @click="$emit('close')"
         >
           <X class="h-5 w-5" />
@@ -120,12 +152,12 @@ watch(
           <div>
             <label class="mb-1.5 block text-sm font-medium text-[#0A1628]">
               <Building2 class="mr-1 inline h-4 w-4 text-[#64748B]" />
-              Adres
+              {{ t('createTransaction.address') }}
             </label>
             <input
               v-model="form.propertyAddress"
               class="w-full rounded-lg border border-[#E2E8F0] bg-white px-3 py-2.5 text-sm text-[#0A1628] transition-all focus:border-[#D4A853] focus:outline-none focus:ring-2 focus:ring-[#D4A853]/20"
-              placeholder="Örn. Bağdat Cd. 42, Kadıköy"
+              :placeholder="t('createTransaction.addressPlaceholder')"
             />
             <p v-if="errors.propertyAddress" class="mt-1 text-xs text-red-500">
               {{ errors.propertyAddress }}
@@ -133,7 +165,7 @@ watch(
           </div>
 
           <div>
-            <label class="mb-1.5 block text-sm font-medium text-[#0A1628]">Tür</label>
+            <label class="mb-1.5 block text-sm font-medium text-[#0A1628]">{{ t('createTransaction.type') }}</label>
             <div class="flex gap-3">
               <button
                 v-for="t in (['sale', 'rental'] as const)"
@@ -147,7 +179,7 @@ watch(
                 "
                 @click="form.propertyType = t"
               >
-                {{ t === 'sale' ? 'Satış' : 'Kiralama' }}
+                {{ t === 'sale' ? t('transactions.sale') : t('transactions.rental') }}
               </button>
             </div>
           </div>
@@ -155,7 +187,7 @@ watch(
           <div>
             <label class="mb-1.5 block text-sm font-medium text-[#0A1628]">
               <DollarSign class="mr-1 inline h-4 w-4 text-[#64748B]" />
-              Hizmet bedeli (TL)
+              {{ t('createTransaction.serviceFee') }}
             </label>
             <input
               v-model="form.transactionValue"
@@ -163,7 +195,7 @@ watch(
               min="0"
               step="500"
               class="w-full rounded-lg border border-[#E2E8F0] bg-white px-3 py-2.5 text-sm text-[#0A1628] transition-all focus:border-[#D4A853] focus:outline-none focus:ring-2 focus:ring-[#D4A853]/20"
-              placeholder="0"
+              :placeholder="'0'"
             />
             <p v-if="errors.transactionValue" class="mt-1 text-xs text-red-500">
               {{ errors.transactionValue }}
@@ -173,14 +205,16 @@ watch(
           <div>
             <label class="mb-1.5 block text-sm font-medium text-[#0A1628]">
               <Users class="mr-1 inline h-4 w-4 text-[#64748B]" />
-              İlan danışmanı
+              {{ t('transactions.listingAgent') }}
             </label>
             <select
               v-model="form.listingAgentId"
               class="w-full cursor-pointer rounded-lg border border-[#E2E8F0] bg-white px-3 py-2.5 text-sm text-[#0A1628] transition-all focus:border-[#D4A853] focus:outline-none focus:ring-2 focus:ring-[#D4A853]/20"
+              @change="onListingAgentChange"
             >
-              <option value="">Seçin…</option>
-              <option v-for="a in AGENTS" :key="a.id" :value="a.id">
+              <option :value="NEW_AGENT_VALUE">{{ t('createTransaction.addNew') }}</option>
+              <option value="">{{ t('createTransaction.select') }}</option>
+              <option v-for="a in agents.agents" :key="a.id" :value="a.id">
                 {{ a.name }} — {{ a.title }}
               </option>
             </select>
@@ -190,13 +224,15 @@ watch(
           </div>
 
           <div>
-            <label class="mb-1.5 block text-sm font-medium text-[#0A1628]">Satış danışmanı</label>
+            <label class="mb-1.5 block text-sm font-medium text-[#0A1628]">{{ t('transactions.sellingAgent') }}</label>
             <select
               v-model="form.sellingAgentId"
               class="w-full cursor-pointer rounded-lg border border-[#E2E8F0] bg-white px-3 py-2.5 text-sm text-[#0A1628] transition-all focus:border-[#D4A853] focus:outline-none focus:ring-2 focus:ring-[#D4A853]/20"
+              @change="onSellingAgentChange"
             >
-              <option value="">Seçin…</option>
-              <option v-for="a in AGENTS" :key="a.id" :value="a.id">
+              <option :value="NEW_AGENT_VALUE">{{ t('createTransaction.addNew') }}</option>
+              <option value="">{{ t('createTransaction.select') }}</option>
+              <option v-for="a in agents.agents" :key="a.id" :value="a.id">
                 {{ a.name }} — {{ a.title }}
               </option>
             </select>
@@ -207,11 +243,11 @@ watch(
         </div>
 
         <div class="w-full bg-[#FAFBFC] p-6 md:w-72">
-          <h3 class="mb-4 text-sm font-semibold text-[#0A1628]">Komisyon önizleme</h3>
+          <h3 class="mb-4 text-sm font-semibold text-[#0A1628]">{{ t('createTransaction.preview') }}</h3>
 
           <div v-if="value > 0" class="space-y-4">
             <div class="rounded-xl border border-[#E2E8F0] bg-white p-4 shadow-sm">
-              <div class="mb-1 text-xs text-[#64748B]">Toplam hizmet bedeli</div>
+              <div class="mb-1 text-xs text-[#64748B]">{{ t('reports.totalServiceFee') }}</div>
               <div class="text-xl font-bold text-[#0A1628]">{{ formatCurrency(value) }}</div>
             </div>
 
@@ -219,7 +255,7 @@ watch(
               <div class="flex items-center justify-between rounded-lg border border-[#E2E8F0] bg-white p-3">
                 <div class="flex items-center gap-2">
                   <div class="h-2.5 w-2.5 rounded-full bg-[#0A1628]" />
-                  <span class="text-xs font-medium text-[#64748B]">Ajans %50</span>
+                  <span class="text-xs font-medium text-[#64748B]">{{ t('createTransaction.agency50') }}</span>
                 </div>
                 <span class="text-sm font-semibold text-[#0A1628]">{{ formatCurrency(company) }}</span>
               </div>
@@ -230,7 +266,7 @@ watch(
               >
                 <div class="flex items-center gap-2">
                   <div class="h-2.5 w-2.5 rounded-full bg-[#D4A853]" />
-                  <span class="text-xs font-medium text-[#64748B]">Danışman %50</span>
+                  <span class="text-xs font-medium text-[#64748B]">{{ t('createTransaction.agent50') }}</span>
                 </div>
                 <span class="text-sm font-semibold text-[#0A1628]">
                   {{ formatCurrency(listingAgentShare) }}
@@ -241,7 +277,7 @@ watch(
                 <div class="flex items-center justify-between rounded-lg border border-[#E2E8F0] bg-white p-3">
                   <div class="flex items-center gap-2">
                     <div class="h-2.5 w-2.5 rounded-full bg-[#D4A853]" />
-                    <span class="text-xs font-medium text-[#64748B]">İlan %25</span>
+                    <span class="text-xs font-medium text-[#64748B]">{{ t('createTransaction.listing25') }}</span>
                   </div>
                   <span class="text-sm font-semibold text-[#0A1628]">
                     {{ formatCurrency(listingAgentShare) }}
@@ -250,7 +286,7 @@ watch(
                 <div class="flex items-center justify-between rounded-lg border border-[#E2E8F0] bg-white p-3">
                   <div class="flex items-center gap-2">
                     <div class="h-2.5 w-2.5 rounded-full bg-[#F59E0B]" />
-                    <span class="text-xs font-medium text-[#64748B]">Satış %25</span>
+                    <span class="text-xs font-medium text-[#64748B]">{{ t('createTransaction.selling25') }}</span>
                   </div>
                   <span class="text-sm font-semibold text-[#0A1628]">
                     {{ formatCurrency(sellingAgentShare) }}
@@ -271,13 +307,13 @@ watch(
             </div>
 
             <div class="rounded-xl border border-[#E2E8F0] bg-white p-3">
-              <p class="text-xs text-[#64748B]">İlan: {{ agent(form.listingAgentId)?.name ?? '—' }}</p>
-              <p class="text-xs text-[#64748B]">Satış: {{ agent(form.sellingAgentId)?.name ?? '—' }}</p>
+              <p class="text-xs text-[#64748B]">{{ t('transactions.listing') }}: {{ agent(form.listingAgentId)?.name ?? '—' }}</p>
+              <p class="text-xs text-[#64748B]">{{ t('transactions.selling') }}: {{ agent(form.sellingAgentId)?.name ?? '—' }}</p>
             </div>
           </div>
 
           <div v-else class="py-8 text-center text-sm text-[#94A3B8]">
-            Önizleme için tutar girin.
+            {{ t('createTransaction.enterAmountForPreview') }}
           </div>
         </div>
       </form>
@@ -288,7 +324,7 @@ watch(
           class="rounded-lg px-4 py-2 text-sm font-medium text-[#64748B] transition-colors hover:bg-[#F1F5F9]"
           @click="$emit('close')"
         >
-          Vazgeç
+          {{ t('common.cancel') }}
         </button>
         <button
           type="button"
@@ -296,10 +332,15 @@ watch(
           style="background-color: #d4a853"
           @click="create"
         >
-          Oluştur
+          {{ t('createTransaction.create') }}
         </button>
       </div>
     </div>
   </div>
+  <AgentsAddAgentModal
+    :open="showAddAgentModal"
+    @close="showAddAgentModal = false"
+    @created="onAgentCreated"
+  />
 </template>
 

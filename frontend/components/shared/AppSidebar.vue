@@ -4,7 +4,6 @@ import {
   FileText,
   Users,
   BarChart3,
-  LogOut,
   Plus,
   ChevronLeft,
   ChevronRight,
@@ -13,7 +12,6 @@ import {
 
 const route = useRoute();
 const ui = useUiStore();
-const session = useSessionStore();
 const { t } = useI18n();
 
 const navItems = [
@@ -28,10 +26,6 @@ function isActive(path: string, exact?: boolean) {
   return route.path === path || route.path.startsWith(`${path}/`);
 }
 
-async function handleLogout() {
-  session.logout();
-  await navigateTo('/login');
-}
 </script>
 
 <template>
@@ -54,9 +48,9 @@ async function handleLogout() {
           class="text-base font-bold tracking-tight text-white"
           style="font-family: 'Plus Jakarta Sans', ui-sans-serif, system-ui"
         >
-          PropEx
+          {{ t('brand.name') }}
         </div>
-        <div class="text-xs text-white/40">İşlem yönetimi</div>
+        <div class="text-xs text-white/40">{{ t('brand.productSubtitle') }}</div>
       </div>
     </div>
 
@@ -100,16 +94,8 @@ async function handleLogout() {
       </NuxtLink>
       <button
         type="button"
-        class="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-white/50 transition-all hover:bg-white/5 hover:text-white"
-        @click="handleLogout"
-      >
-        <LogOut class="h-5 w-5 flex-shrink-0" />
-        <span v-if="!ui.sidebarCollapsed">{{ t('common.logout') }}</span>
-      </button>
-      <button
-        type="button"
         class="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-white/30 transition-all hover:bg-white/5 hover:text-white/60"
-        :aria-label="ui.sidebarCollapsed ? 'Genişlet' : 'Daralt'"
+        :aria-label="ui.sidebarCollapsed ? t('common.expand') : t('common.collapse')"
         @click="ui.toggleSidebar()"
       >
         <ChevronRight v-if="ui.sidebarCollapsed" class="h-5 w-5 flex-shrink-0" />
@@ -157,14 +143,6 @@ async function handleLogout() {
       >
         <Plus class="h-5 w-5" />
       </NuxtLink>
-      <button
-        type="button"
-        class="flex w-full items-center justify-center rounded-xl p-2.5 text-white/30 transition-all hover:bg-white/5 hover:text-white/60"
-        :title="t('common.logout')"
-        @click="handleLogout"
-      >
-        <LogOut class="h-5 w-5" />
-      </button>
     </div>
   </aside>
 

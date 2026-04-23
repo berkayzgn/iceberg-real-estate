@@ -5,6 +5,9 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import appConfig from './config/app.config';
 import databaseConfig from './config/database.config';
+import { AgentsModule } from './modules/agents/agents.module';
+import { ReportsModule } from './modules/reports/reports.module';
+import { TransactionsModule } from './modules/transactions/transactions.module';
 
 @Module({
   imports: [
@@ -26,6 +29,9 @@ import databaseConfig from './config/database.config';
       },
       inject: [ConfigService],
     }),
+    AgentsModule,
+    TransactionsModule,
+    ReportsModule,
   ],
   controllers: [AppController],
   providers: [AppService],

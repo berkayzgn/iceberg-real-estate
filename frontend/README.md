@@ -13,4 +13,4 @@ npm run dev
 
 Varsayılan geliştirme adresi: `http://localhost:3000` · API: `NUXT_PUBLIC_API_BASE` (ör. `http://localhost:3002/api`).
 
-İlk açılışta `/login` → **Demo ile devam et** (çerez tabanlı demo oturumu).
+Uygulama doğrudan dashboard ile açılır; ayrı bir login ekranı bulunmaz.

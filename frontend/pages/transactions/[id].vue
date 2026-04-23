@@ -1,18 +1,19 @@
 <script setup lang="ts">
 import {
-  AGENTS,
   calculateCommission,
   formatCurrency,
   timeAgo,
   getNextStage,
   STAGE_COLORS,
-  STAGE_LABELS,
   STAGE_ORDER,
 } from '~/utils/demo-data';
-import { ArrowLeft, ChevronRight, Home, Building2, Calendar, CheckCircle, AlertCircle, Clock } from 'lucide-vue-next';
+import { ArrowLeft, ChevronRight, Home, Building2, Calendar, CheckCircle, AlertCircle, Clock, Trash2 } from 'lucide-vue-next';
 
 const tx = useTransactionsStore();
 const toast = useToastStore();
+const agents = useAgentsStore();
+const loading = ref(true);
+const { t } = useI18n();
 
 const route = useRoute();
 const id = computed(() => route.params.id as string);
@@ -20,7 +21,7 @@ const id = computed(() => route.params.id as string);
 const transaction = computed(() => tx.findById(id.value));
 
 function agent(aid: string) {
-  return AGENTS.find((a) => a.id === aid);
+  return agents.findById(aid);
 }
 
 const comm = computed(() =>
@@ -37,27 +38,62 @@ const stageColors = computed(() =>
 
 const showConfirm = ref(false);
 
-function advance() {
+async function advance() {
   if (!transaction.value) return;
   const to = nextStage.value;
-  tx.advanceStage(transaction.value.id);
-  if (to) {
-    toast.success(
-      to === 'completed' ? 'İşlem tamamlandı.' : 'Aşama güncellendi.',
-      'Başarılı',
-    );
+  try {
+    await tx.advanceStage(transaction.value.id);
+    if (to) {
+      toast.success(
+        to === 'completed' ? 'İşlem tamamlandı.' : 'Aşama güncellendi.',
+        'Başarılı',
+      );
+    }
+    showConfirm.value = false;
+  } catch (error) {
+    const message =
+      error instanceof Error ? error.message : 'Aşama güncellenemedi.';
+    toast.error(message, 'Hata');
   }
-  showConfirm.value = false;
+}
+
+async function removeTransaction() {
+  if (!transaction.value) return;
+  const ok = window.confirm(t('common.confirmDelete'));
+  if (!ok) return;
+
+  try {
+    await tx.removeTransaction(transaction.value.id);
+    toast.success(t('common.delete'), t('common.panel'));
+    await navigateTo('/transactions');
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'İşlem silinemedi.';
+    toast.error(message, 'Hata');
+  }
 }
 
 const progressStages = STAGE_ORDER;
+const stageLabel = (stage: string) => t(`stages.${stage}`);
+
+onMounted(async () => {
+  try {
+    if (!agents.loaded) await agents.fetchAll();
+    if (!tx.loaded) await tx.fetchAll();
+    if (!tx.findById(id.value)) await tx.fetchById(id.value);
+  } finally {
+    loading.value = false;
+  }
+});
 </script>
 
 <template>
-  <div v-if="!transaction" class="p-8">
-    <p class="text-[#64748B]">İşlem bulunamadı.</p>
+  <div v-if="loading" class="p-8">
+    <p class="text-[#64748B]">{{ t('common.loading') }}</p>
+  </div>
+  <div v-else-if="!transaction" class="p-8">
+    <p class="text-[#64748B]">{{ t('common.notFound') }}</p>
     <NuxtLink to="/transactions" class="mt-4 text-sm text-[#D4A853] hover:underline"
-      >Listeye dön</NuxtLink
+      >{{ t('common.backToList') }}</NuxtLink
     >
   </div>
   <div v-else class="mx-auto max-w-4xl p-6 lg:p-8">
@@ -127,7 +163,7 @@ const progressStages = STAGE_ORDER;
 
           <div class="flex flex-col items-start gap-3 lg:items-end">
             <div>
-              <p class="text-right text-xs text-[#64748B]">Toplam hizmet bedeli</p>
+              <p class="text-right text-xs text-[#64748B]">{{ t('reports.totalServiceFee') }}</p>
               <p
                 class="text-2xl font-bold text-[#0A1628]"
                 style="font-family: 'Plus Jakarta Sans', ui-sans-serif, system-ui"
@@ -143,13 +179,21 @@ const progressStages = STAGE_ORDER;
               style="background-color: #d4a853"
               @click="showConfirm = true"
             >
-              Aşamayı ilerlet ({{ STAGE_LABELS[nextStage] }})
+              {{ t('transactions.advanceStage') }} ({{ stageLabel(nextStage) }})
               <ChevronRight class="h-4 w-4" />
             </button>
+            <button
+              type="button"
+              class="inline-flex items-center gap-2 rounded-xl border border-red-200 px-3 py-2 text-xs font-semibold text-red-600 transition-colors hover:bg-red-50"
+              @click="removeTransaction"
+            >
+              <Trash2 class="h-3.5 w-3.5" />
+              {{ t('common.delete') }}
+            </button>
 
-            <div v-else class="flex items-center gap-2 text-sm font-semibold text-green-600">
+            <div v-if="!nextStage" class="flex items-center gap-2 text-sm font-semibold text-green-600">
               <CheckCircle class="h-4 w-4" />
-              Tamamlandı
+              {{ stageLabel('completed') }}
             </div>
           </div>
         </div>
@@ -181,7 +225,7 @@ const progressStages = STAGE_ORDER;
                       : 'text-[#94A3B8]'
                   "
                 >
-                  {{ STAGE_LABELS[s] }}
+                  {{ stageLabel(s) }}
                 </span>
               </div>
               <div
@@ -199,15 +243,15 @@ const progressStages = STAGE_ORDER;
           class="rounded-2xl border border-[#E2E8F0] bg-white p-6 shadow-[0_1px_3px_rgba(0,0,0,0.06)]"
         >
           <h3 class="mb-5 text-base font-semibold text-[#0A1628]">
-            Komisyon dağılımı
+            {{ t('transactions.commissionBreakdown') }}
           </h3>
           <div v-if="comm" class="space-y-3">
             <div class="flex items-center justify-between rounded-xl border border-[#E2E8F0] bg-[#FAFBFC] p-4">
-              <span class="text-sm font-medium text-[#64748B]">Ajans (%50)</span>
+              <span class="text-sm font-medium text-[#64748B]">{{ t('transactions.agency50') }}</span>
               <span class="text-sm font-bold text-[#0A1628]">{{ formatCurrency(comm.company) }}</span>
             </div>
             <div class="flex items-center justify-between rounded-xl border border-[#E2E8F0] bg-[#FAFBFC] p-4">
-              <span class="text-sm font-medium text-[#64748B]">Danışman(lar) (%50)</span>
+              <span class="text-sm font-medium text-[#64748B]">{{ t('transactions.agents50') }}</span>
               <span class="text-sm font-bold text-[#D4A853]">{{ formatCurrency(comm.agentTotal) }}</span>
             </div>
             <div class="mt-2 flex h-3 overflow-hidden rounded-full">
@@ -222,7 +266,7 @@ const progressStages = STAGE_ORDER;
           class="rounded-2xl border border-[#E2E8F0] bg-white p-6 shadow-[0_1px_3px_rgba(0,0,0,0.06)]"
         >
           <h3 class="mb-5 text-base font-semibold text-[#0A1628]">
-            Danışman atamaları
+            {{ t('transactions.agentAssignments') }}
           </h3>
 
           <div class="space-y-4">
@@ -232,10 +276,10 @@ const progressStages = STAGE_ORDER;
             >
               <div class="mb-3 flex items-center justify-between">
                 <span class="text-xs font-semibold uppercase tracking-wider text-[#64748B]"
-                  >İlan danışmanı</span
+                  >{{ t('transactions.listingAgent') }}</span
                 >
                 <span class="rounded-full bg-blue-50 px-2 py-0.5 text-xs font-medium text-blue-600"
-                  >Listing</span
+                  >{{ t('transactions.listing') }}</span
                 >
               </div>
 
@@ -243,7 +287,7 @@ const progressStages = STAGE_ORDER;
 
               <div class="mt-3 border-t border-[#E2E8F0] pt-3">
                 <div class="flex items-center justify-between">
-                  <span class="text-xs text-[#64748B]">Kazanç</span>
+                  <span class="text-xs text-[#64748B]">{{ t('agents.earnings') }}</span>
                   <span class="text-sm font-bold text-[#D4A853]">
                     {{ formatCurrency(comm?.listingAgent ?? 0) }}
                   </span>
@@ -257,10 +301,10 @@ const progressStages = STAGE_ORDER;
             >
               <div class="mb-3 flex items-center justify-between">
                 <span class="text-xs font-semibold uppercase tracking-wider text-[#64748B]"
-                  >Satış danışmanı</span
+                  >{{ t('transactions.sellingAgent') }}</span
                 >
                 <span class="rounded-full bg-amber-50 px-2 py-0.5 text-xs font-medium text-amber-700"
-                  >Selling</span
+                  >{{ t('transactions.selling') }}</span
                 >
               </div>
 
@@ -268,7 +312,7 @@ const progressStages = STAGE_ORDER;
 
               <div class="mt-3 border-t border-[#E2E8F0] pt-3">
                 <div class="flex items-center justify-between">
-                  <span class="text-xs text-[#64748B]">Kazanç</span>
+                  <span class="text-xs text-[#64748B]">{{ t('agents.earnings') }}</span>
                   <span class="text-sm font-bold text-[#D4A853]">
                     {{ formatCurrency(comm?.sellingAgent ?? 0) }}
                   </span>
@@ -288,16 +332,16 @@ const progressStages = STAGE_ORDER;
             <div class="rounded-xl border border-white/10 p-4" style="background-color: #0a1628">
               <div class="mb-2 flex items-center justify-between">
                 <span class="text-xs font-semibold uppercase tracking-wider text-white/60"
-                  >Ajans</span
+                  >{{ t('transactions.agency') }}</span
                 >
                 <span class="rounded-full bg-white/10 px-2 py-0.5 text-xs font-medium text-white/80"
                   >50%</span
                 >
               </div>
-              <p class="text-sm font-bold text-white">PropEx Agency</p>
+              <p class="text-sm font-bold text-white">{{ t('brand.agency') }}</p>
               <div class="mt-3 border-t border-white/10 pt-3">
                 <div class="flex items-center justify-between">
-                  <span class="text-xs text-white/60">Gelir</span>
+                  <span class="text-xs text-white/60">{{ t('agents.earnings') }}</span>
                   <span class="text-sm font-bold text-[#D4A853]">
                     {{ formatCurrency(comm?.company ?? 0) }}
                   </span>
@@ -313,7 +357,7 @@ const progressStages = STAGE_ORDER;
         >
           <div class="mb-5 flex items-center gap-2">
             <Clock class="h-4 w-4 text-[#64748B]" />
-            <h3 class="text-base font-semibold text-[#0A1628]">Aktivite</h3>
+            <h3 class="text-base font-semibold text-[#0A1628]">{{ t('dashboard.activity') }}</h3>
           </div>
 
           <div class="relative">
@@ -369,18 +413,18 @@ const progressStages = STAGE_ORDER;
             <div class="flex h-10 w-10 items-center justify-center rounded-full bg-amber-50">
               <AlertCircle class="h-5 w-5 text-amber-500" />
             </div>
-            <h3 class="text-base font-semibold text-[#0A1628]">Aşamayı ilerlet?</h3>
+            <h3 class="text-base font-semibold text-[#0A1628]">{{ t('transactions.confirmAdvance') }}</h3>
           </div>
           <p class="mb-2 text-sm text-[#64748B]">
             Bu işlem aşaması değiştirilecek.
           </p>
           <div class="mb-6 flex items-center gap-3 rounded-xl border border-[#E2E8F0] bg-[#FAFBFC] p-3">
             <span class="text-sm font-semibold text-[#0A1628]">
-              {{ STAGE_LABELS[transaction.stage] }}
+              {{ stageLabel(transaction.stage) }}
             </span>
             <ChevronRight class="h-4 w-4 text-[#94A3B8]" />
             <span class="text-sm font-semibold text-[#D4A853]">
-              {{ STAGE_LABELS[nextStage] }}
+              {{ stageLabel(nextStage) }}
             </span>
           </div>
           <p class="mb-5 text-xs text-[#94A3B8]">
