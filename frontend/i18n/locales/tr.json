@@ -44,8 +44,8 @@
     "metrics": {
       "total": "Toplam işlem",
       "active": "Aktif işlem",
-      "completedVolume": "Tamamlanan hacim (TL)",
-      "pendingAgentShare": "Bekleyen danışman payı (TL)"
+      "completedVolume": "Tamamlanan hacim (USD)",
+      "pendingAgentShare": "Bekleyen danışman payı (USD)"
     },
     "funnel": "Aşama hunisi",
     "all": "Tümü",
@@ -166,7 +166,7 @@
     "address": "Adres",
     "addressPlaceholder": "Örn. Bağdat Cd. 42, Kadıköy",
     "type": "Tür",
-    "serviceFee": "Hizmet bedeli (TL)",
+    "serviceFee": "Hizmet bedeli (USD)",
     "addNew": "+ Yeni ekle…",
     "select": "Seçin…",
     "preview": "Komisyon önizleme",

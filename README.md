@@ -26,6 +26,6 @@ cd frontend && npm install && cp -n .env.example .env && npm run dev
 - **API (Render)**: `https://iceberg-real-estate.onrender.com`
   - Sağlık kontrolü: `GET /api/health`
   - API kökü: `GET /api`
-- **Frontend (Vercel)**: (deploy edince buraya eklenecek)
+- **Frontend (Vercel)**: `https://iceberg-real-estate.vercel.app`
 
 Not: Prod’da Vercel domain’ini backend CORS’a eklemek için Render’da `CORS_ORIGINS` env değişkenini set edin (virgülle birden fazla origin). Ayrıntı: `backend/README.md`.

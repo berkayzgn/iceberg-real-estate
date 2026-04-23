@@ -1,0 +1,1 @@
+import{_ as s,o as t,c as a,V as n}from"./CbTtx2A3.js";const c={},o={class:"min-h-screen bg-[#FAFBFC] text-slate-900 antialiased"};function r(e,l){return t(),a("div",o,[n(e.$slots,"default")])}const d=s(c,[["render",r]]);export{d as default};

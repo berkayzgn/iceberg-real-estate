@@ -1,0 +1,1 @@
+import{Y as s,r as n}from"./CbTtx2A3.js";const u=s("ui",()=>{const e=n(!1),a=n(!1);function t(){e.value=!e.value}function o(){a.value=!0}function r(){a.value=!1}return{sidebarCollapsed:e,toggleSidebar:t,createTransactionOpen:a,openCreateTransaction:o,closeCreateTransaction:r}});export{u};

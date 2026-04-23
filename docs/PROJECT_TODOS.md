@@ -93,18 +93,21 @@ Tamamladıkça `[ ]` → `[x]` yapın.
   - [x] commission saklama stratejisi (embedded/ayrı/dinamik) + gerekçe
   - [x] stage geçiş stratejisi
   - [x] frontend state yönetimi
-- [ ] `README.md`:
+- [x] `README.md`:
   - [x] backend/frontend kurulum
   - [x] env değişkenleri
   - [x] test komutları
-  - [x] canlı URL’ler (API URL eklendi; Vercel URL deploy sonrası eklenecek)
+  - [x] canlı URL’ler (API + Vercel)
 
 ---
 
 ## P4 — Deployment
 - [x] Backend deployment (Render/Railway vb.)
-- [ ] Frontend deployment (Vercel/Netlify vb.)
-- [ ] Prod env değişkenleri (Render: `MONGODB_URI` + `CORS_ORIGINS` (Vercel domain))
+- [x] Frontend deployment (Vercel/Netlify vb.)
+- [x] Prod env değişkenleri
+  - [ ] Vercel: `NUXT_PUBLIC_API_BASE` → build-time’a işlensin (sayfa kaynağında `apiBase` **localhost kalmamalı**)
+  - [x] Render: `CORS_ORIGINS` (prod: `https://iceberg-real-estate.vercel.app` — `curl` ile `access-control-allow-origin` doğrulandı)
+  - [ ] (Opsiyonel) Vercel preview domain’leri için `CORS_ORIGINS`’a ek origin’ler
 - [ ] E2E smoke test (create transaction -> stage transition -> breakdown/report)
 
 ---

@@ -44,8 +44,8 @@
     "metrics": {
       "total": "Total transactions",
       "active": "Active transactions",
-      "completedVolume": "Completed volume (TRY)",
-      "pendingAgentShare": "Pending agent share (TRY)"
+      "completedVolume": "Completed volume (USD)",
+      "pendingAgentShare": "Pending agent share (USD)"
     },
     "funnel": "Stage funnel",
     "all": "All",
@@ -166,7 +166,7 @@
     "address": "Address",
     "addressPlaceholder": "Ex: Main St. 42, Kadikoy",
     "type": "Type",
-    "serviceFee": "Service fee (TRY)",
+    "serviceFee": "Service fee (USD)",
     "addNew": "+ Add new…",
     "select": "Select…",
     "preview": "Commission preview",

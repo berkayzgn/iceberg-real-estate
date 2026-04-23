@@ -76,7 +76,7 @@ const option = computed(() => ({
     axisLabel: {
       color: '#94A3B8',
       fontSize: 11,
-      formatter: (v: number) => `₺${(v / 1000).toFixed(0)}k`,
+      formatter: (v: number) => `$${(v / 1000).toFixed(0)}k`,
     },
   },
   series: [
