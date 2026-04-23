@@ -1,6 +1,11 @@
 // https://nuxt.com/docs/api/configuration/nuxt-config
 /// <reference types="node" />
-const isVercel = Boolean(process.env.VERCEL);
+/** Vercel build; tek env bazen child process’e geçmeyebildiği için birkaç sinyal. */
+const isVercel = Boolean(
+  process.env.VERCEL ||
+    process.env.VERCEL_ENV ||
+    process.env.VERCEL_URL,
+);
 const publicApiBase = process.env.NUXT_PUBLIC_API_BASE?.trim() ?? "";
 
 // Vercel'de API base mutlaka prod URL olmalı; aksi halde client bundle'a localhost gömülür.
@@ -12,11 +17,13 @@ if (isVercel && !publicApiBase) {
 }
 
 export default defineNuxtConfig({
-  // Vercel: Nitro `vue`/`vue-router` vb. dış modül bırakınca runtime `/var/task` içinde
-  // package bulunamayabiliyor (ERR_MODULE_NOT_FOUND). Prod serverless’te hepsini bundle’la.
-  nitro: isVercel
-    ? { preset: "vercel" as const, noExternals: true }
-    : {},
+  // Vercel: dış bırakılan `vue-router` vb. /var/task node_modules’ta yok (ERR_MODULE_NOT_FOUND).
+  // Sadece `VERCEL=1` ile koşullamak yetersiz; bazı build’lerde o env nuxt child’a gitmiyor.
+  // `noExternals: true` her `nuxt build` için güvenli; sadece çıktı biraz büyür.
+  nitro: {
+    ...(isVercel ? { preset: "vercel" as const } : {}),
+    noExternals: true,
+  },
   modules: ["@pinia/nuxt", "@nuxtjs/tailwindcss", "@nuxtjs/i18n"],
   css: ["~/assets/css/main.css"],
   i18n: {
