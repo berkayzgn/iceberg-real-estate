@@ -3,7 +3,7 @@ import {
   calculateCommission,
   formatCurrency,
   getAgentStats,
-} from "~/utils/demo-data";
+} from "~/utils/domain";
 import VChart from "vue-echarts";
 import {
   ArrowLeft,
@@ -17,17 +17,46 @@ import { toApiErrorInfo } from "~/utils/api-error";
 const tx = useTransactionsStore();
 const agents = useAgentsStore();
 const toast = useToastStore();
+const config = useRuntimeConfig();
 const loading = ref(true);
 const { t } = useI18n();
+
+type AgentReport = {
+  completedTransactions: number;
+  totalEarnings: number;
+  currency: string;
+  roles: { listing: number; selling: number; dual: number };
+  transactions: Array<{
+    id: string;
+    propertyAddress: string;
+    transactionValue: number;
+    completedAt?: string;
+    earning: number;
+    role: "listing" | "selling" | "dual";
+  }>;
+};
+const agentReport = ref<AgentReport | null>(null);
 
 const route = useRoute();
 const id = computed(() => route.params.id as string);
 
 const agent = computed(() => agents.findById(id.value));
 
-const stats = computed(() =>
+const statsLocal = computed(() =>
   agent.value ? getAgentStats(agent.value.id, tx.transactions) : null
 );
+const stats = computed(() => {
+  if (agentReport.value) {
+    return {
+      totalTransactions: statsLocal.value?.totalTransactions ?? 0,
+      totalEarnings: agentReport.value.totalEarnings,
+      completedTransactions: agentReport.value.completedTransactions,
+      listingCount: agentReport.value.roles.listing + agentReport.value.roles.dual,
+      sellingCount: agentReport.value.roles.selling,
+    };
+  }
+  return statsLocal.value;
+});
 
 const agentTxns = computed(() =>
   tx.transactions.filter(
@@ -48,6 +77,7 @@ const earningsSeries = computed(() => {
 
   const earningsMap = new Map<string, number>();
   for (const t of agentTxns.value) {
+    if (t.stage !== "completed") continue;
     const c = calculateCommission(t);
     const isDual =
       t.listingAgentId === id.value && t.sellingAgentId === id.value;
@@ -57,7 +87,7 @@ const earningsSeries = computed(() => {
       : isListing
       ? c.listingAgent
       : c.sellingAgent;
-    const d = new Date(t.date);
+    const d = new Date(t.completedAt ?? t.date);
     const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(
       2,
       "0"
@@ -162,8 +192,13 @@ const earningsLineOption = computed(() => ({
 
 onMounted(async () => {
   try {
-    if (!agents.loaded) await agents.fetchAll();
-    if (!tx.loaded) await tx.fetchAll();
+    await Promise.all([
+      agents.loaded ? Promise.resolve() : agents.fetchAll(),
+      tx.loaded ? Promise.resolve() : tx.fetchAll(),
+    ]);
+    agentReport.value = await $fetch<AgentReport>(
+      `${config.public.apiBase}/reports/agent/${id.value}`
+    );
   } catch (error) {
     const err = toApiErrorInfo(error, "Danışman detayı alınamadı.");
     toast.error(err.message, err.title);
@@ -409,33 +444,33 @@ onMounted(async () => {
 
       <div v-else class="divide-y divide-[#F1F5F9]">
         <div
-          v-for="t in agentTxns"
-          :key="t.id"
+          v-for="txn in agentTxns"
+          :key="txn.id"
           class="-mx-2 flex cursor-pointer items-center justify-between rounded-lg px-2 py-3 transition-colors hover:bg-[#FAFBFC]"
-          @click="navigateTo(`/transactions/${t.id}`)"
+          @click="navigateTo(`/transactions/${txn.id}`)"
         >
           <div>
             <p class="text-sm font-semibold text-[#0A1628]">
-              {{ t.propertyAddress.split(",")[0] }}
+              {{ txn.propertyAddress.split(",")[0] }}
             </p>
             <div
               class="mt-0.5 flex flex-wrap items-center gap-2 text-xs text-[#94A3B8]"
             >
-              <span>{{ new Date(t.date).toLocaleDateString("tr-TR") }}</span>
+              <span>{{ new Date(txn.date).toLocaleDateString("tr-TR") }}</span>
               <span
                 class="rounded-full px-1.5 py-0.5 font-medium"
                 :class="
-                  t.listingAgentId === id && t.sellingAgentId === id
+                  txn.listingAgentId === id && txn.sellingAgentId === id
                     ? 'bg-purple-50 text-purple-600'
-                    : t.listingAgentId === id
+                    : txn.listingAgentId === id
                     ? 'bg-blue-50 text-blue-600'
                     : 'bg-amber-50 text-amber-700'
                 "
               >
                 {{
-                  t.listingAgentId === id && t.sellingAgentId === id
+                  txn.listingAgentId === id && txn.sellingAgentId === id
                     ? t("agents.dual")
-                    : t.listingAgentId === id
+                    : txn.listingAgentId === id
                     ? t("transactions.listing")
                     : t("transactions.selling")
                 }}
@@ -444,14 +479,14 @@ onMounted(async () => {
           </div>
 
           <div class="flex items-center gap-4">
-            <TransactionStageBadge :stage="t.stage" size="sm" />
+            <TransactionStageBadge :stage="txn.stage" size="sm" />
             <span class="text-sm font-bold text-[#D4A853]">
               {{
                 (() => {
-                  const c = calculateCommission(t);
+                  const c = calculateCommission(txn);
                   const isDual =
-                    t.listingAgentId === id && t.sellingAgentId === id;
-                  const isListing = t.listingAgentId === id;
+                    txn.listingAgentId === id && txn.sellingAgentId === id;
+                  const isListing = txn.listingAgentId === id;
                   const earned = isDual
                     ? c.listingAgent
                     : isListing
