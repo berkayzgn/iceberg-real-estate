@@ -6,6 +6,9 @@ dist/
 build/
 .nuxt/
 .output/
+# Vercel: repoda `frontend/.vercel` olursa Vercel gerçek `nuxt build` çalıştırmaz, eski çıktıyı deploy eder.
+frontend/.vercel/
+.vercel/
 
 # Vite
 *.local
