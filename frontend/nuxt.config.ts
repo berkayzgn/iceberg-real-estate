@@ -1,4 +1,5 @@
 // https://nuxt.com/docs/api/configuration/nuxt-config
+/// <reference types="node" />
 const isVercel = Boolean(process.env.VERCEL);
 const publicApiBase = process.env.NUXT_PUBLIC_API_BASE?.trim() ?? "";
 
@@ -11,7 +12,11 @@ if (isVercel && !publicApiBase) {
 }
 
 export default defineNuxtConfig({
-  nitro: process.env.VERCEL ? { preset: "vercel" } : {},
+  // Vercel: Nitro `vue`/`vue-router` vb. dış modül bırakınca runtime `/var/task` içinde
+  // package bulunamayabiliyor (ERR_MODULE_NOT_FOUND). Prod serverless’te hepsini bundle’la.
+  nitro: isVercel
+    ? { preset: "vercel" as const, noExternals: true }
+    : {},
   modules: ["@pinia/nuxt", "@nuxtjs/tailwindcss", "@nuxtjs/i18n"],
   css: ["~/assets/css/main.css"],
   i18n: {
@@ -44,5 +49,6 @@ export default defineNuxtConfig({
     appManifest: true,
   },
   compatibilityDate: "2024-11-01",
-  devtools: { enabled: true },
+  // Prod serverless (Vercel) ortamında devtools ek yük / uyumsuzluk riski: sadece local dev.
+  devtools: { enabled: process.env.NODE_ENV === "development" },
 });
