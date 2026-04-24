@@ -4,12 +4,15 @@ import { Model } from 'mongoose';
 import { CreateAgentDto } from './dto/create-agent.dto';
 import { UpdateAgentDto } from './dto/update-agent.dto';
 import { Agent, AgentDocument } from './schemas/agent.schema';
+import { Transaction, TransactionDocument } from '../transactions/schemas/transaction.schema';
 
 @Injectable()
 export class AgentsService {
   constructor(
     @InjectModel(Agent.name)
     private readonly agentModel: Model<AgentDocument>,
+    @InjectModel(Transaction.name)
+    private readonly transactionModel: Model<TransactionDocument>,
   ) {}
 
   async create(dto: CreateAgentDto) {
@@ -49,6 +52,14 @@ export class AgentsService {
   }
 
   async remove(id: string) {
+    const inUse = await this.transactionModel.countDocuments({
+      $or: [{ listingAgent: id }, { sellingAgent: id }],
+    });
+    if (inUse > 0) {
+      throw new BadRequestException(
+        'Bu danışman bir veya daha fazla işlemde atanmış; silmek için önce ilgili işlemleri kaldırın veya danışman atamalarını değiştirin.',
+      );
+    }
     const deleted = await this.agentModel.findByIdAndDelete(id).lean({ virtuals: true });
     if (!deleted) throw new NotFoundException('Danışman bulunamadı.');
     return { success: true, id };

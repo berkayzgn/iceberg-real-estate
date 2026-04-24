@@ -41,7 +41,7 @@ export interface MonthlyData {
   agentShare: number;
 }
 
-/** Aşama etiketleri (rehberdeki süreç; arayüz TR). */
+/** Stage labels for UI (Turkish copy). */
 export const STAGE_LABELS: Record<Stage, string> = {
   agreement: 'Anlaşma',
   earnest_money: 'Kapora',

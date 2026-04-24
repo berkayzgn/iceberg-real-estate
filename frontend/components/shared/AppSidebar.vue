@@ -8,10 +8,12 @@ import {
   ChevronLeft,
   ChevronRight,
   Building2,
+  LogOut,
 } from 'lucide-vue-next';
 
 const route = useRoute();
 const ui = useUiStore();
+const auth = useAuthStore();
 const { t } = useI18n();
 
 const navItems = [
@@ -94,6 +96,15 @@ function isActive(path: string, exact?: boolean) {
       </NuxtLink>
       <button
         type="button"
+        class="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-white/50 transition-all hover:bg-white/5 hover:text-white/80"
+        :title="ui.sidebarCollapsed ? t('common.logout') : undefined"
+        @click="auth.logout()"
+      >
+        <LogOut class="h-5 w-5 flex-shrink-0 text-white/50" />
+        <span v-if="!ui.sidebarCollapsed">{{ t('common.logout') }}</span>
+      </button>
+      <button
+        type="button"
         class="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-white/30 transition-all hover:bg-white/5 hover:text-white/60"
         :aria-label="ui.sidebarCollapsed ? t('common.expand') : t('common.collapse')"
         @click="ui.toggleSidebar()"
@@ -143,6 +154,14 @@ function isActive(path: string, exact?: boolean) {
       >
         <Plus class="h-5 w-5" />
       </NuxtLink>
+      <button
+        type="button"
+        class="flex w-full items-center justify-center rounded-xl p-2.5 text-white/50 transition-all hover:bg-white/5 hover:text-white/80"
+        :title="t('common.logout')"
+        @click="auth.logout()"
+      >
+        <LogOut class="h-5 w-5" />
+      </button>
     </div>
   </aside>
 

@@ -15,21 +15,25 @@
     "notFound": "Bulunamadı",
     "backToList": "Listeye dön",
     "delete": "Sil",
-    "confirmDelete": "Silmek istediğinize emin misiniz?"
+    "confirmDelete": "Silmek istediğinize emin misiniz?",
+    "success": "Başarılı"
   },
   "login": {
     "title": "Giriş yap",
-    "subtitle": "Demo kimlik bilgileriyle devam edin.",
+    "subtitle": "Hesabınızla devam edin.",
+    "portalSubtitle": "Satış portalına giriş yapın",
+    "heroTitle": "Portföyünüzü yükseltin",
+    "heroBody": "Seçkin ilanlara ve gelişmiş analitiklere güvenli erişim — tek panelde.",
     "email": "E-posta",
     "password": "Şifre",
-    "demoEmail": "admin{'@'}icebergdigital.co",
-    "passwordPlaceholder": "••••••••",
+    "emailPlaceholder": "ornek{'@'}alanadi.com",
+    "passwordPlaceholder": "Hesap şifreniz",
     "show": "Göster",
     "hide": "Gizle",
     "submit": "Giriş yap",
     "submitting": "Giriş yapılıyor...",
     "invalid": "E-posta veya şifre hatalı.",
-    "hint": "Demo kimlik bilgileri hazır."
+    "errorTitle": "Giriş başarısız"
   },
   "brand": {
     "name": "Iceberg Digital",
@@ -74,6 +78,10 @@
   },
   "transactions": {
     "transaction": "İşlem",
+    "headerRecordCount": "{count} kayıt.",
+    "columnValue": "Değer",
+    "columnStage": "Aşama",
+    "columnDate": "Tarih",
     "searchPlaceholder": "Adres veya referans ara…",
     "allStages": "Tüm aşamalar",
     "allAgents": "Tüm danışmanlar",
@@ -88,6 +96,10 @@
     "commission": "Komisyon",
     "sameAgent": "Aynı danışman",
     "deleteError": "İşlem silinemedi.",
+    "backToTransactions": "İşlemler",
+    "toastCompleted": "İşlem tamamlandı.",
+    "toastStageUpdated": "Aşama güncellendi.",
+    "stageUpdateError": "Aşama güncellenemedi.",
     "advanceStage": "Aşamayı ilerlet",
     "advance": "İlerlet",
     "confirmAdvance": "Aşamayı ilerlet?",
@@ -112,9 +124,15 @@
     "selectTitle": "Ünvan seçin",
     "selectSpecialization": "Uzmanlık seçin",
     "phone": "Telefon",
+    "countryCode": "Alan kodu",
+    "phoneLocal": "Yerel numara",
+    "phoneLocalHint": "Baştaki 0 opsiyonel; yalnızca rakam girin.",
     "add": "Ekle",
     "added": "Danışman eklendi.",
     "addError": "Danışman eklenemedi.",
+    "deleted": "Danışman silindi.",
+    "deleteError": "Danışman silinemedi.",
+    "deleteBlockedHint": "İşlemde yer alan danışman silinemez.",
     "joined": "Katılım",
     "earnings": "Kazanç",
     "completed": "Tamamlanan",
@@ -125,11 +143,24 @@
     "dual": "Çift rol",
     "transactionHistory": "İşlem geçmişi",
     "noTransactionsYet": "Henüz işlem yok.",
+    "titles": {
+      "salesConsultant": "Satış danışmanı",
+      "seniorSalesConsultant": "Kıdemli satış danışmanı",
+      "portfolioConsultant": "Portföy danışmanı"
+    },
+    "specializations": {
+      "residential": "Konut",
+      "luxury": "Lüks konut",
+      "commercial": "Ticari",
+      "leasing": "Kiralama",
+      "investment": "Yatırım"
+    },
     "validation": {
       "nameRequired": "Ad soyad zorunlu.",
       "titleRequired": "Ünvan zorunlu.",
       "emailRequired": "E-posta zorunlu.",
       "phoneRequired": "Telefon zorunlu.",
+      "phoneInvalid": "Yerel numara 7–15 rakam olmalıdır.",
       "specializationRequired": "Uzmanlık zorunlu."
     }
   },

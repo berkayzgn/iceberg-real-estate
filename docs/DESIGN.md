@@ -1,181 +1,108 @@
-# DESIGN.md — Estate Agency Transaction Management System
+# Tasarım dokümanı (DESIGN)
 
-Bu doküman, projedeki mimari ve tasarım kararlarını `docs/system-guide.md` gereksinimlerine göre özetler.
+Bu belge, `docs/system-guide.md` kapsamındaki mimari ve tasarım kararlarını özetler. Kurulum ve canlı adresler için kök `README.md` dosyasına bakınız.
 
-## 1. Mimari Özet
+## 1. Mimari
 
-Sistem iki parçadan oluşur:
+| Katman | Teknoloji |
+|--------|-----------|
+| API | NestJS, TypeScript, MongoDB (Mongoose) |
+| İstemci | Nuxt 3, Pinia, Tailwind CSS |
 
-- Backend: NestJS + TypeScript + MongoDB Atlas (Mongoose)
-- Frontend: Nuxt 3 + Pinia + Tailwind CSS
+Veri akışı: istemci store’ları REST API çağırır; controller → service iş kuralını uygular; yanıt normalize edilerek arayüzde gösterilir.
 
-Yüksek seviyeli akış:
+## 2. Veri modeli
 
-1. Frontend Pinia store'ları API çağrısı yapar.
-2. Backend controller -> service akışıyla iş kuralını uygular.
-3. MongoDB'den alınan veri normalize edilerek frontend'e döner.
-4. UI state store'da tutulur, sayfalar store'dan render edilir.
+### 2.1 Agent
 
-## 2. Data Model Kararları
+Alanlar: `firstName`, `lastName`, `email` (benzersiz), `phone`, `title`, `specialization`, `isActive`, zaman damgaları. API’de `fullName` sanal alanı kullanılabilir.
 
-### 2.1 Agent modeli
+**Silme:** `DELETE /api/agents/:id` danışmanı kaldırır. En az bir işlemde `listingAgent` veya `sellingAgent` olarak geçen kayıt silinemez; bu durumda yanıt **HTTP 400** ve açıklayıcı mesaj döner. İstemci, işlem sayısı sıfır olan kartlarda / detayda silme eylemini gösterir.
 
-Agent dokümanı şu alanları içerir:
+### 2.2 Transaction
 
-- `firstName`, `lastName`
-- `email` (unique)
-- `phone`
-- `title`
-- `specialization`
-- `isActive`
-- `createdAt`, `updatedAt` (timestamps)
+Alanlar: `propertyAddress`, `propertyType` (`sale` | `rental`), `transactionValue`, `stage`, `listingAgent` / `sellingAgent` referansları, `stageHistory[]`, tamamlanınca doldurulan `commissionBreakdown`, `completedAt`, zaman damgaları.
 
-Tasarım gerekçesi:
+## 3. Komisyonun saklanması
 
-- İşlem raporlarında agent kimliği temel varlık olduğundan bağımsız koleksiyonda tutuldu.
-- `email` unique tutularak aynı danışmanın mükerrer açılması engellendi.
-- `fullName` virtual alanı ile API tüketiminde kolaylık sağlandı.
+**Karar:** `commissionBreakdown`, tamamlanmış işlemin dokümanına gömülü (embedded) kaydedilir.
 
-### 2.2 Transaction modeli
+**Gerekçe:** Döküm yalnızca ilgili işlemle anlamlıdır; tek sorguda işlem ve finansal sonuç döner; kural deterministik olduğundan tamamlanma anındaki anlık görüntü rapor tutarlılığını korur.
 
-Transaction dokümanı şu alanları içerir:
+## 4. Aşama (stage) geçişleri
 
-- `propertyAddress`
-- `propertyType` (`sale` | `rental`)
-- `transactionValue`
-- `stage` (`agreement` | `earnest_money` | `title_deed` | `completed`)
-- `listingAgent`, `sellingAgent` (Agent referansları)
-- `stageHistory[]`
-- `commissionBreakdown` (opsiyonel, completed olduğunda doldurulur)
-- `completedAt`
-- `createdAt`, `updatedAt`
+Sıra: `agreement` → `earnest_money` → `title_deed` → `completed`.
 
-Tasarım gerekçesi:
+Yalnızca bir sonraki aşamaya geçişe izin verilir; geçersiz isteklerde HTTP `400` ve anlaşılır hata mesajı döner.
 
-- İşlem akışını tek dokümanda toplayarak okunabilirlik ve operasyonel basitlik sağlandı.
-- Stage geçmişi (`stageHistory`) ile denetlenebilirlik ve zaman çizelgesi üretimi kolaylaştırıldı.
+## 5. Komisyon politikası
 
-## 3. Commission Saklama Stratejisi
+- Toplam hizmet bedelinin %50’si ajansa, %50’si ajan(lar)a.
+- Listing ve selling aynı kişiyse: ajan payının tamamı o kişiye.
+- Farklı kişilerse: ajan payı listing ve selling arasında eşit bölünür (%25 / %25).
 
-Seçilen strateji: `commissionBreakdown` alanını `Transaction` dokümanına gömülü (embedded) saklamak.
+Kural backend servis katmanında uygulanır; birim testlerle doğrulanır (`npm test`).
 
-Neden embedded?
+## 6. API ve güvenlik
 
-- Breakdown sadece ilgili işlemle anlamlı; yaşam döngüsü transaction ile birebir bağlı.
-- Tek sorguda işlem + finansal sonuç döndürülebiliyor.
-- UI tarafında hızlı tüketim ve daha az API round-trip sağlıyor.
-- Komisyon kuralı sistemde deterministik olduğu için completed anında snapshot almak rapor tutarlılığı sağlıyor.
+Genel önek: **`/api`**.
 
-Alternatiflerin değerlendirmesi:
+| Grup | Örnek uçlar |
+|------|-------------|
+| Sistem | `GET /api`, `GET /api/health` |
+| Kimlik | `POST /api/auth/login` (JWT döner; diğer uçlar `Authorization: Bearer …` ister) |
+| İş mantığı | `/api/agents`, `/api/transactions`, `/api/reports` |
 
-- Ayrı koleksiyon: Raporlama esnekliği artsa da bu proje ölçeğinde gereksiz join ve karmaşıklık oluşturuyor.
-- Tam dinamik hesaplama: Geçmişteki kural değişimlerinde tarihsel doğruluğu bozabilir.
+**Kimlik doğrulama:** İlk çalıştırmada yapılandırılan `ADMIN_EMAIL` / `ADMIN_PASSWORD` ile tek panel kullanıcısı yoksa oluşturulur (şifre bcrypt). İstemci, JWT’yi **`sessionStorage`** içinde tutar; **her tarayıcı sekmesi ayrı oturum** gerektirir (yeni sekmede doğrudan panele girilmez, yeniden giriş gerekir). Çıkışta token silinir ve ilgili Pinia önbelleği temizlenir.
 
-## 4. Stage Geçiş Stratejisi
+Giriş yanıtı `Cache-Control: no-store` ile işaretlenir.
 
-Desteklenen aşama sırası:
+Doğrulama: DTO’lar ve global `ValidationPipe`. Hatalar: global exception filter ile `statusCode`, `timestamp`, `path`, `method`, `message` (ve gerektiğinde `errors[]`).
 
-`agreement -> earnest_money -> title_deed -> completed`
+## 7. İstemci durumu (Pinia)
 
-Geçiş politikası:
+| Store | Sorumluluk |
+|-------|------------|
+| `auth` | Oturum aç/kapat, token |
+| `agents` | Danışman listesi, oluşturma, silme |
+| `transactions` | İşlemler, aşama güncelleme, oluşturma, silme |
+| `ui` | Kenar çubuğu, modal vb. |
+| `toast` | Bildirimler |
 
-- Yalnızca bir sonraki aşamaya geçişe izin verilir.
-- Geçersiz geçişlerde backend `400` döner.
-- Hata mesajı ham teknik ifade yerine kullanıcı dilinde açıklamalıdır.
+İşlemler ve danışmanlar için mutasyonlar store üzerinden yapılır. Salt okunur rapor uçları (ör. `breakdown`, `summary`, `agent/:id`) bazı sayfalarda doğrudan `authorizedFetch` ile çağrılabilir.
 
-Örnek:
+## 8. Arayüz özeti
 
-- Desteklenmeyen geçiş: `agreement -> title_deed`
-- Mesaj: "Bu işlem Anlaşma aşamasındayken doğrudan Tapu aşamasına geçirilemez. Önce Kapora aşamasına ilerletmelisiniz."
+Panel: özet metrikler, aşama hunisi, sürükle-bırak ile aşama güncelleme (desteklenmeyen geçişlerde uyarı). İşlem ve danışman oluşturma modalları. Danışman silme: yalnızca hiç işleme atanmamış danışmanlar (liste ve detay; onay ile).
 
-Bu yaklaşımın avantajları:
+## 9. Sınırlamalar ve olası geliştirmeler
 
-- Süreç disiplini korunur.
-- Kullanıcı hataları erken yakalanır.
-- Frontend tarafında açıklayıcı notification üretimi kolaylaşır.
+- CORS: Geliştirmede boş `CORS_ORIGINS` yerel Nuxt portlarına izin verir; üretimde açık origin listesi gerekir.
+- Soğuk başlatmalı barındırıcılar: İstemci açılışta `GET /api/health` ile hafif uyandırma yapabilir; gecikme tamamen ortadan kalkmaz.
+- İleride: rol bazlı yetki, denetim günlüğü, E2E pipeline, merkezi sırlar yönetimi.
 
-## 5. Komisyon İş Kuralı
+## 10. `system-guide.md` uyumu (özet)
 
-Kural:
+| Madde | Durum |
+|-------|--------|
+| Stack (NestJS, MongoDB, Nuxt, Pinia, Tailwind) | Uygun |
+| Aşamalar ve panel | Uygun |
+| Finansal döküm | `commissionBreakdown` + raporlar |
+| Komisyon + testler | Uygulama + `npm test` |
+| Kaynak kod, DESIGN, README, canlı URL + Atlas | Repoda; operasyonel env kullanıcıya bağlı |
 
-- Toplam hizmet bedelinin `%50`si ajansa
-- Kalan `%50`si ajan(lar)a
+## 11. Uç ve rota referansı
 
-Senaryo A (tek ajan):
+**Backend** (tümü `/api` altında; Swagger: `/api/docs`, genelde üretimde kapalı):
 
-- `listingAgent == sellingAgent`
-- Ajans: `%50`
-- Ajan: `%50`
+- **Public:** `POST /auth/login`, `GET /` (kök meta), `GET /health`
+- **Agents:** `GET|POST /agents`, `GET|PATCH /agents/:id`, `DELETE /agents/:id` (işlemde atanmış danışmanda `400`)
+- **Transactions:** `GET|POST /transactions`, `GET|PATCH|DELETE /transactions/:id`, `PATCH /transactions/:id/stage`, `GET /transactions/:id/breakdown`
+- **Reports:** `GET /reports/summary`, `GET /reports/agent/:id`  
+  (JWT dışındaki uçlar Bearer gerektirir.)
 
-Senaryo B (farklı ajanlar):
+**Frontend** (`i18n` stratejisi `no_prefix`):
 
-- `listingAgent != sellingAgent`
-- Ajans: `%50`
-- Listing: `%25`
-- Selling: `%25`
+`/login`, `/`, `/transactions`, `/transactions/create`, `/transactions/:id`, `/agents`, `/agents/:id`, `/reports`
 
-Bu mantık backend service katmanında uygulanır ve unit test ile doğrulanır.
-
-## 6. API Tasarım Kararları
-
-Temel endpoint grupları:
-
-- `/api/agents`
-- `/api/transactions`
-- `/api/reports`
-
-Kararlar:
-
-- Controller sadece request/response sınırı, iş kuralı service içinde.
-- DTO + ValidationPipe ile giriş validasyonu merkezi yapıldı.
-- Global exception filter ile standart hata gövdesi döndürülüyor.
-
-Standart hata gövdesi:
-
-- `statusCode`
-- `timestamp`
-- `path`
-- `method`
-- `message`
-- (opsiyonel) `errors[]`
-
-## 7. Frontend State Yönetimi
-
-Pinia store yapısı:
-
-- `agents.store.ts`: danışman listesi ve create/remove işlemleri
-- `transactions.store.ts`: işlem listesi, detay, stage update, create/remove
-- `ui.store.ts`: modal/sidebar gibi saf UI state
-- `toast.store.ts`: kullanıcı geri bildirimleri
-
-State ilkeleri:
-
-- API cache-benzeri davranış: `loaded` + `force` yaklaşımı
-- Mapping katmanı: backend modeli -> frontend view model dönüştürme
-- Sayfalar doğrudan HTTP çağırmak yerine store aksiyonlarını kullanır
-
-Hata yönetimi:
-
-- API hata gövdesi parse edilip kullanıcı dostu toast mesajına çevrilir.
-- `400/404` gibi teknik başlıklar yerine anlamlı başlıklar gösterilir.
-
-## 8. Dashboard ve UX Kararları
-
-- Dashboard üstünde metrik kartları + stage funnel + activity alanı var.
-- Drag-and-drop ile stage güncelleme desteklenir.
-- Desteklenmeyen işlemlerde kullanıcıya açıklayıcı uyarı gösterilir.
-- Modal bazlı işlem/danışman oluşturma ile akış hızlandırılır.
-
-## 9. Trade-off ve Gelecek İyileştirmeler
-
-Mevcut trade-off:
-
-- CORS origin listesi dev ortam portlarına göre explicit tutuluyor.
-- Breakdown completed anında snapshotlandığı için geçmiş tutarlılığı korunuyor, fakat kural değişiminde migration ihtiyacı doğabilir.
-
-Önerilen geliştirmeler:
-
-- Role-based authorization
-- Audit log genişletme
-- Deployment sonrası e2e smoke pipeline
-- Üretim ortamı için merkezi config/secrets yönetimi
+**Ortam:** `NUXT_PUBLIC_API_BASE` üretimde tam API kökünü göstermeli (`…/api`). `MONGODB_URI` ve `JWT_SECRET` yalnızca sunucu ortamında; repoda yalnızca `.env.example` şablonu bulunur.

@@ -8,6 +8,7 @@ import {
   STAGE_ORDER,
 } from "~/utils/domain";
 import { toApiErrorInfo } from "~/utils/api-error";
+import { authorizedFetch } from "~/utils/authorized-fetch";
 import {
   ArrowLeft,
   ChevronRight,
@@ -80,13 +81,15 @@ async function advance() {
     await tx.advanceStage(transaction.value.id);
     if (to) {
       toast.success(
-        to === "completed" ? "İşlem tamamlandı." : "Aşama güncellendi.",
-        "Başarılı"
+        to === "completed"
+          ? t("transactions.toastCompleted")
+          : t("transactions.toastStageUpdated"),
+        t("common.success")
       );
     }
     showConfirm.value = false;
   } catch (error) {
-    const err = toApiErrorInfo(error, "Aşama güncellenemedi.");
+    const err = toApiErrorInfo(error, t("transactions.stageUpdateError"));
     toast.error(err.message, err.title);
   }
 }
@@ -101,7 +104,7 @@ async function removeTransaction() {
     toast.success(t("common.delete"), t("common.panel"));
     await navigateTo("/transactions");
   } catch (error) {
-    const err = toApiErrorInfo(error, "İşlem silinemedi.");
+    const err = toApiErrorInfo(error, t("transactions.deleteError"));
     toast.error(err.message, err.title);
   }
 }
@@ -118,7 +121,7 @@ onMounted(async () => {
     if (!tx.findById(id.value)) await tx.fetchById(id.value);
     if (transaction.value?.stage === "completed") {
       try {
-        apiBreakdown.value = await $fetch<ApiBreakdown>(
+        apiBreakdown.value = await authorizedFetch<ApiBreakdown>(
           `${config.public.apiBase}/transactions/${id.value}/breakdown`
         );
       } catch {
@@ -146,9 +149,10 @@ onMounted(async () => {
   <div v-else class="mx-auto max-w-4xl p-6 lg:p-8">
     <NuxtLink
       to="/transactions"
-      class="mb-6 inline-block text-sm text-[#64748B] hover:text-[#D4A853]"
+      class="mb-6 inline-flex items-center gap-1 text-sm text-[#64748B] hover:text-[#D4A853]"
     >
-      ← İşlemler
+      <ArrowLeft class="h-4 w-4" />
+      {{ t("transactions.backToTransactions") }}
     </NuxtLink>
     <div class="mx-auto max-w-[1200px]">
       <!-- Header Card -->

@@ -1,5 +1,11 @@
 <script setup lang="ts">
 import { toApiErrorInfo } from "~/utils/api-error";
+import { AGENT_SPEC_KEYS, AGENT_TITLE_KEYS } from "~/utils/agent-labels";
+import {
+  PHONE_DIAL_OPTIONS,
+  phoneDialLabel,
+} from "~/utils/phone-dial-codes";
+import { buildE164Phone, nationalDigitsOnly } from "~/utils/phone-e164";
 
 const props = defineProps<{ open: boolean }>();
 
@@ -10,26 +16,14 @@ const emit = defineEmits<{
 
 const agents = useAgentsStore();
 const toast = useToastStore();
-const { t } = useI18n();
-
-const TITLE_OPTIONS = [
-  "Satış Danışmanı",
-  "Kıdemli Satış Danışmanı",
-  "Portföy Danışmanı",
-] as const;
-const SPECIALIZATION_OPTIONS = [
-  "Konut",
-  "Lüks Konut",
-  "Ticari",
-  "Kiralama",
-  "Yatırım",
-] as const;
+const { t, locale } = useI18n();
 
 const form = reactive({
   name: "",
   title: "",
   email: "",
-  phone: "",
+  dialCode: "+90",
+  phoneNational: "",
   specialization: "",
 });
 
@@ -39,7 +33,8 @@ function reset() {
   form.name = "";
   form.title = "";
   form.email = "";
-  form.phone = "";
+  form.dialCode = "+90";
+  form.phoneNational = "";
   form.specialization = "";
   for (const k of Object.keys(errors)) delete errors[k];
 }
@@ -49,7 +44,10 @@ function validate() {
   if (!form.name.trim()) errors.name = t("agents.validation.nameRequired");
   if (!form.title.trim()) errors.title = t("agents.validation.titleRequired");
   if (!form.email.trim()) errors.email = t("agents.validation.emailRequired");
-  if (!form.phone.trim()) errors.phone = t("agents.validation.phoneRequired");
+  const national = nationalDigitsOnly(form.phoneNational);
+  if (!national.length) errors.phone = t("agents.validation.phoneRequired");
+  else if (national.length < 7 || national.length > 15)
+    errors.phone = t("agents.validation.phoneInvalid");
   if (!form.specialization.trim())
     errors.specialization = t("agents.validation.specializationRequired");
   return Object.keys(errors).length === 0;
@@ -58,7 +56,14 @@ function validate() {
 async function create() {
   if (!validate()) return;
   try {
-    const created = await agents.addAgent(form);
+    const phone = buildE164Phone(form.dialCode, form.phoneNational);
+    const created = await agents.addAgent({
+      name: form.name,
+      title: form.title,
+      email: form.email,
+      phone,
+      specialization: form.specialization,
+    });
     toast.success(t("agents.added"), t("common.panel"));
     emit("created", created.id);
     reset();
@@ -110,8 +115,12 @@ watch(
             class="w-full rounded-lg border border-[#E2E8F0] px-3 py-2.5 text-sm"
           >
             <option value="" disabled>{{ t("agents.selectTitle") }}</option>
-            <option v-for="title in TITLE_OPTIONS" :key="title" :value="title">
-              {{ title }}
+            <option
+              v-for="titleKey in AGENT_TITLE_KEYS"
+              :key="titleKey"
+              :value="titleKey"
+            >
+              {{ t(`agents.titles.${titleKey}`) }}
             </option>
           </select>
           <p v-if="errors.title" class="mt-1 text-xs text-red-500">
@@ -127,11 +136,11 @@ watch(
               {{ t("agents.selectSpecialization") }}
             </option>
             <option
-              v-for="specialization in SPECIALIZATION_OPTIONS"
-              :key="specialization"
-              :value="specialization"
+              v-for="specKey in AGENT_SPEC_KEYS"
+              :key="specKey"
+              :value="specKey"
             >
-              {{ specialization }}
+              {{ t(`agents.specializations.${specKey}`) }}
             </option>
           </select>
           <p v-if="errors.specialization" class="mt-1 text-xs text-red-500">
@@ -148,12 +157,47 @@ watch(
             {{ errors.email }}
           </p>
         </div>
-        <div>
-          <input
-            v-model="form.phone"
-            class="w-full rounded-lg border border-[#E2E8F0] px-3 py-2.5 text-sm"
-            :placeholder="t('agents.phone')"
-          />
+        <div class="sm:col-span-2">
+          <p class="mb-1 text-xs font-medium text-[#64748B]">
+            {{ t("agents.phone") }}
+          </p>
+          <div class="flex flex-col gap-2 sm:flex-row sm:items-stretch">
+            <div class="sm:w-[min(100%,14rem)] sm:flex-shrink-0">
+              <label class="sr-only" for="agent-dial-code">{{
+                t("agents.countryCode")
+              }}</label>
+              <select
+                id="agent-dial-code"
+                v-model="form.dialCode"
+                class="h-full w-full rounded-lg border border-[#E2E8F0] bg-white px-3 py-2.5 text-sm text-[#0A1628] focus:border-[#D4A853] focus:outline-none focus:ring-1 focus:ring-[#D4A853]"
+              >
+                <option
+                  v-for="opt in PHONE_DIAL_OPTIONS"
+                  :key="opt.dial"
+                  :value="opt.dial"
+                >
+                  {{ phoneDialLabel(opt, locale) }}
+                </option>
+              </select>
+            </div>
+            <div class="min-w-0 flex-1">
+              <label class="sr-only" for="agent-phone-national">{{
+                t("agents.phoneLocal")
+              }}</label>
+              <input
+                id="agent-phone-national"
+                v-model="form.phoneNational"
+                type="tel"
+                inputmode="numeric"
+                autocomplete="tel-national"
+                class="w-full rounded-lg border border-[#E2E8F0] px-3 py-2.5 text-sm text-[#0A1628] placeholder:text-[#94A3B8] focus:border-[#D4A853] focus:outline-none focus:ring-1 focus:ring-[#D4A853]"
+                :placeholder="t('agents.phoneLocal')"
+              />
+            </div>
+          </div>
+          <p class="mt-1 text-xs text-[#94A3B8]">
+            {{ t("agents.phoneLocalHint") }}
+          </p>
           <p v-if="errors.phone" class="mt-1 text-xs text-red-500">
             {{ errors.phone }}
           </p>

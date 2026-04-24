@@ -1,6 +1,6 @@
 # Estate Agency API (NestJS)
 
-`docs/system-guide.md` rehberine uygun backend.
+Backend API; gereksinim özeti `docs/system-guide.md`, mimari `docs/DESIGN.md`.
 
 ## Gereksinimler
 
@@ -37,6 +37,11 @@ npm run test:e2e      # e2e — çalışan bir MongoDB gerekir (varsayılan URI:
 | Değişken       | Açıklama                          |
 |----------------|-----------------------------------|
 | `MONGODB_URI`  | Zorunlu — Mongo connection string |
+| `JWT_SECRET`   | Zorunlu üretimde — JWT imza anahtarı |
+| `JWT_EXPIRES_SECONDS` | Opsiyonel — token ömrü (saniye), varsayılan `604800` |
+| `ADMIN_EMAIL` / `ADMIN_PASSWORD` | İlk çalıştırmada seed edilen panel kullanıcısı |
 | `CORS_ORIGINS` | Opsiyonel — virgülle ayrılmış origin listesi (örn. `https://my-app.vercel.app`). Boşsa local Nuxt portları (3000/3001) izinlidir. |
 | `PORT`         | Opsiyonel, varsayılan `3002`      |
 | `NODE_ENV`     | `development` / `production`    |
+
+`POST /api/auth/login` ile `{ "email", "password" }` gönderildiğinde `accessToken` döner; diğer uçlar `Authorization: Bearer …` ister.

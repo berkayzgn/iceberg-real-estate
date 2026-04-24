@@ -17,6 +17,7 @@ const tx = useTransactionsStore();
 const toast = useToastStore();
 const agents = useAgentsStore();
 const { t } = useI18n();
+const { formatTitle } = useAgentLabels();
 const NEW_AGENT_VALUE = "__new_agent__";
 const showAddAgentModal = ref(false);
 const addAgentTarget = ref<"listing" | "selling">("listing");
@@ -237,7 +238,7 @@ watch(
               </option>
               <option value="">{{ t("createTransaction.select") }}</option>
               <option v-for="a in agents.agents" :key="a.id" :value="a.id">
-                {{ a.name }} — {{ a.title }}
+                {{ a.name }} — {{ formatTitle(a.title) }}
               </option>
             </select>
             <p v-if="errors.listingAgentId" class="mt-1 text-xs text-red-500">
@@ -259,7 +260,7 @@ watch(
               </option>
               <option value="">{{ t("createTransaction.select") }}</option>
               <option v-for="a in agents.agents" :key="a.id" :value="a.id">
-                {{ a.name }} — {{ a.title }}
+                {{ a.name }} — {{ formatTitle(a.title) }}
               </option>
             </select>
             <p v-if="errors.sellingAgentId" class="mt-1 text-xs text-red-500">

@@ -1,9 +1,11 @@
 import type { Config } from 'tailwindcss';
+import { estateColors } from './tailwind.estate-theme';
 
 export default {
   theme: {
     extend: {
       colors: {
+        ...estateColors,
         brand: {
           amber: 'var(--color-brand-amber)',
           navy: 'var(--color-brand-navy)',

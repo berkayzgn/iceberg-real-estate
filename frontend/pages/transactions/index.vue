@@ -103,10 +103,10 @@ async function removeTxn(id: string) {
           class="text-2xl font-bold text-[#0A1628]"
           style="font-family: 'Plus Jakarta Sans', ui-sans-serif, system-ui"
         >
-          İşlemler
+          {{ t("common.transactions") }}
         </h1>
         <p class="mt-0.5 text-sm text-[#64748B]">
-          {{ tx.transactions.length }} kayıt.
+          {{ t("transactions.headerRecordCount", { count: tx.transactions.length }) }}
         </p>
       </div>
     </div>
@@ -222,7 +222,7 @@ async function removeTxn(id: string) {
                   class="group flex items-center gap-1 text-xs font-semibold text-[#64748B] transition-colors hover:text-[#0A1628]"
                   @click="toggleSort('transactionValue')"
                 >
-                  Değer
+                  {{ t("transactions.columnValue") }}
                   <ArrowUpDown
                     class="h-3 w-3 transition-colors"
                     :class="
@@ -239,7 +239,7 @@ async function removeTxn(id: string) {
                   class="group flex items-center gap-1 text-xs font-semibold text-[#64748B] transition-colors hover:text-[#0A1628]"
                   @click="toggleSort('stage')"
                 >
-                  Aşama
+                  {{ t("transactions.columnStage") }}
                   <ArrowUpDown
                     class="h-3 w-3 transition-colors"
                     :class="
@@ -272,7 +272,7 @@ async function removeTxn(id: string) {
                   class="group flex items-center gap-1 text-xs font-semibold text-[#64748B] transition-colors hover:text-[#0A1628]"
                   @click="toggleSort('date')"
                 >
-                  Tarih
+                  {{ t("transactions.columnDate") }}
                   <ArrowUpDown
                     class="h-3 w-3 transition-colors"
                     :class="
@@ -415,7 +415,12 @@ async function removeTxn(id: string) {
       </div>
 
       <p class="mt-4 text-center text-xs text-[#94A3B8]">
-        {{ filtered.length }} / {{ tx.transactions.length }} gösteriliyor
+        {{
+          t("common.showing", {
+            filtered: filtered.length,
+            total: tx.transactions.length,
+          })
+        }}
       </p>
     </template>
   </div>

@@ -12,14 +12,17 @@ import {
   TrendingUp,
   Award,
   ArrowRight,
+  Trash2,
 } from "lucide-vue-next";
 import { toApiErrorInfo } from "~/utils/api-error";
+import { authorizedFetch } from "~/utils/authorized-fetch";
 const tx = useTransactionsStore();
 const agents = useAgentsStore();
 const toast = useToastStore();
 const config = useRuntimeConfig();
 const loading = ref(true);
 const { t } = useI18n();
+const { formatTitle, formatSpecialization } = useAgentLabels();
 
 type AgentReport = {
   completedTransactions: number;
@@ -36,6 +39,7 @@ type AgentReport = {
   }>;
 };
 const agentReport = ref<AgentReport | null>(null);
+const deleting = ref(false);
 
 const route = useRoute();
 const id = computed(() => route.params.id as string);
@@ -114,6 +118,27 @@ const roleCounts = computed(() => {
   ).length;
   return { listingCount, sellingCount, dualCount };
 });
+
+async function removeAgent() {
+  if (!agent.value) return;
+  if (agentTxns.value.length > 0) {
+    toast.error(t("agents.deleteBlockedHint"), t("common.panel"));
+    return;
+  }
+  const ok = window.confirm(t("common.confirmDelete"));
+  if (!ok) return;
+  deleting.value = true;
+  try {
+    await agents.removeAgent(agent.value.id);
+    toast.success(t("agents.deleted"), t("common.panel"));
+    await navigateTo("/agents");
+  } catch (error) {
+    const err = toApiErrorInfo(error, t("agents.deleteError"));
+    toast.error(err.message, err.title);
+  } finally {
+    deleting.value = false;
+  }
+}
 
 const rolePieOption = computed(() => ({
   tooltip: { trigger: "item" },
@@ -196,7 +221,7 @@ onMounted(async () => {
       agents.loaded ? Promise.resolve() : agents.fetchAll(),
       tx.loaded ? Promise.resolve() : tx.fetchAll(),
     ]);
-    agentReport.value = await $fetch<AgentReport>(
+    agentReport.value = await authorizedFetch<AgentReport>(
       `${config.public.apiBase}/reports/agent/${id.value}`
     );
   } catch (error) {
@@ -250,14 +275,14 @@ onMounted(async () => {
               >
                 {{ agent.name }}
               </h1>
-              <p class="text-sm text-[#64748B]">{{ agent.title }}</p>
+              <p class="text-sm text-[#64748B]">{{ formatTitle(agent.title) }}</p>
               <span
                 class="mt-1 inline-block rounded-full bg-amber-50 px-2.5 py-1 text-xs font-medium text-amber-700"
               >
-                {{ agent.specialization }}
+                {{ formatSpecialization(agent.specialization) }}
               </span>
             </div>
-            <div class="flex gap-3">
+            <div class="flex flex-wrap items-center gap-3">
               <a
                 class="flex h-9 w-9 items-center justify-center rounded-xl bg-[#F1F5F9] text-[#64748B] transition-colors hover:bg-[#E2E8F0]"
                 :href="`mailto:${agent.email}`"
@@ -272,6 +297,17 @@ onMounted(async () => {
               >
                 <Phone class="h-4 w-4" />
               </a>
+              <button
+                v-if="agentTxns.length === 0"
+                type="button"
+                class="inline-flex h-9 items-center gap-2 rounded-xl border border-red-200 bg-red-50 px-3 text-xs font-semibold text-red-700 transition-colors hover:bg-red-100 disabled:opacity-50"
+                :disabled="deleting"
+                :aria-label="t('common.delete')"
+                @click="removeAgent"
+              >
+                <Trash2 class="h-4 w-4" />
+                {{ t("common.delete") }}
+              </button>
             </div>
           </div>
 

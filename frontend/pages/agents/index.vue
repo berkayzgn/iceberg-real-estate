@@ -1,7 +1,11 @@
 <script setup lang="ts">
-import { ArrowRight, Plus } from "lucide-vue-next";
-import { getAgentStats, formatCurrency } from "~/utils/domain";
+import { ArrowRight, Plus, Trash2 } from "lucide-vue-next";
+import { getAgentStats, formatCurrency, type Agent } from "~/utils/domain";
 import { toApiErrorInfo } from "~/utils/api-error";
+import {
+  AGENT_TITLE_KEYS,
+  type AgentTitleKey,
+} from "~/utils/agent-labels";
 
 const tx = useTransactionsStore();
 const agents = useAgentsStore();
@@ -9,38 +13,31 @@ const toast = useToastStore();
 const showAddAgentModal = ref(false);
 const loading = ref(true);
 const { t } = useI18n();
-
-const AGENT_TYPE_ORDER = [
-  "Satış Danışmanı",
-  "Kıdemli Satış Danışmanı",
-  "Portföy Danışmanı",
-] as const;
+const { formatSpecialization, groupKeyForTitle } = useAgentLabels();
 
 function statsFor(agentId: string) {
   return getAgentStats(agentId, tx.transactions);
 }
 
 const typeColumns = computed(() => {
-  const grouped = new Map<string, typeof agents.agents.value>();
+  const grouped = new Map<string, Agent[]>();
 
   for (const agent of agents.agents) {
-    const key = AGENT_TYPE_ORDER.includes(
-      agent.title as (typeof AGENT_TYPE_ORDER)[number]
-    )
-      ? agent.title
-      : t("agents.otherType");
-    const prev = grouped.get(key) ?? [];
+    const rawKey = groupKeyForTitle(agent.title);
+    const isKnown = AGENT_TITLE_KEYS.includes(rawKey as AgentTitleKey);
+    const bucket = isKnown ? rawKey : "_other";
+    const prev = grouped.get(bucket) ?? [];
     prev.push(agent);
-    grouped.set(key, prev);
+    grouped.set(bucket, prev);
   }
 
-  const ordered = AGENT_TYPE_ORDER.map((title) => ({
-    key: title,
-    label: title,
-    agents: grouped.get(title) ?? [],
+  const ordered = AGENT_TITLE_KEYS.map((canonical) => ({
+    key: canonical,
+    label: t(`agents.titles.${canonical}`),
+    agents: grouped.get(canonical) ?? [],
   }));
 
-  const otherAgents = grouped.get(t("agents.otherType")) ?? [];
+  const otherAgents = grouped.get("_other") ?? [];
   if (otherAgents.length > 0) {
     ordered.push({
       key: "other",
@@ -62,6 +59,27 @@ onMounted(async () => {
     loading.value = false;
   }
 });
+
+const deletingId = ref<string | null>(null);
+
+async function deleteAgentCard(agent: Agent) {
+  if (statsFor(agent.id).totalTransactions > 0) {
+    toast.error(t("agents.deleteBlockedHint"), t("common.panel"));
+    return;
+  }
+  const ok = window.confirm(t("common.confirmDelete"));
+  if (!ok) return;
+  deletingId.value = agent.id;
+  try {
+    await agents.removeAgent(agent.id);
+    toast.success(t("agents.deleted"), t("common.panel"));
+  } catch (error) {
+    const err = toApiErrorInfo(error, t("agents.deleteError"));
+    toast.error(err.message, err.title);
+  } finally {
+    deletingId.value = null;
+  }
+}
 </script>
 
 <template>
@@ -133,9 +151,20 @@ onMounted(async () => {
               v-for="a in column.agents"
               :key="a.id"
               :to="`/agents/${a.id}`"
-              class="group block min-w-0 cursor-pointer rounded-xl border border-[#E2E8F0] bg-[#FAFBFC] p-4 transition-all duration-200 hover:-translate-y-0.5 hover:bg-white hover:shadow-sm"
+              class="group relative block min-w-0 cursor-pointer rounded-xl border border-[#E2E8F0] bg-[#FAFBFC] p-4 transition-all duration-200 hover:-translate-y-0.5 hover:bg-white hover:shadow-sm"
             >
-              <div class="mb-3 flex items-start justify-between gap-3">
+              <button
+                v-if="statsFor(a.id).totalTransactions === 0"
+                type="button"
+                class="absolute right-2 top-2 z-10 flex h-8 w-8 items-center justify-center rounded-lg border border-red-100 bg-white text-red-600 shadow-sm transition-colors hover:bg-red-50 disabled:opacity-50"
+                :disabled="deletingId === a.id"
+                :title="t('common.delete')"
+                :aria-label="t('common.delete')"
+                @click.stop.prevent="deleteAgentCard(a)"
+              >
+                <Trash2 class="h-4 w-4" />
+              </button>
+              <div class="mb-3 flex items-start justify-between gap-3 pr-8">
                 <div
                   class="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full text-xs font-bold text-white"
                   :style="{ backgroundColor: a.avatarColor }"
@@ -144,9 +173,9 @@ onMounted(async () => {
                 </div>
                 <span
                   class="max-w-[62%] truncate rounded-full bg-[#F1F5F9] px-2 py-0.5 text-[11px] font-medium text-[#64748B]"
-                  :title="a.specialization"
+                  :title="formatSpecialization(a.specialization)"
                 >
-                  {{ a.specialization }}
+                  {{ formatSpecialization(a.specialization) }}
                 </span>
               </div>
 

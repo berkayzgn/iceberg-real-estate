@@ -9,7 +9,11 @@ type MockAgentModel = {
   findByIdAndDelete: jest.Mock;
 };
 
-function buildMockModel(): MockAgentModel {
+type MockTransactionModel = {
+  countDocuments: jest.Mock;
+};
+
+function buildMockAgentModel(): MockAgentModel {
   return {
     create: jest.fn(),
     find: jest.fn(),
@@ -19,13 +23,21 @@ function buildMockModel(): MockAgentModel {
   };
 }
 
+function buildMockTransactionModel(): MockTransactionModel {
+  return {
+    countDocuments: jest.fn().mockResolvedValue(0),
+  };
+}
+
 describe('AgentsService', () => {
   let service: AgentsService;
   let agentModel: MockAgentModel;
+  let transactionModel: MockTransactionModel;
 
   beforeEach(() => {
-    agentModel = buildMockModel();
-    service = new AgentsService(agentModel as never);
+    agentModel = buildMockAgentModel();
+    transactionModel = buildMockTransactionModel();
+    service = new AgentsService(agentModel as never, transactionModel as never);
   });
 
   // ─── create ──────────────────────────────────────────────────────────────
@@ -107,6 +119,16 @@ describe('AgentsService', () => {
       agentModel.findByIdAndDelete.mockReturnValue({ lean: jest.fn().mockResolvedValue({ _id: 'a1' }) });
 
       await expect(service.remove('a1')).resolves.toEqual({ success: true, id: 'a1' });
+      expect(transactionModel.countDocuments).toHaveBeenCalledWith({
+        $or: [{ listingAgent: 'a1' }, { sellingAgent: 'a1' }],
+      });
+    });
+
+    it('throws BadRequestException when agent is assigned to a transaction', async () => {
+      transactionModel.countDocuments.mockResolvedValue(1);
+
+      await expect(service.remove('a1')).rejects.toBeInstanceOf(BadRequestException);
+      expect(agentModel.findByIdAndDelete).not.toHaveBeenCalled();
     });
 
     it('throws NotFoundException when agent does not exist', async () => {

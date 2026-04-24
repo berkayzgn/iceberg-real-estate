@@ -1,7 +1,4 @@
-/**
- * İşlem yaşam döngüsü aşamaları (rehber §3, §4.2).
- * Geçişler yalnızca {@link VALID_TRANSITIONS} ile tanımlanan sıraya izin verilir.
- */
+/** Transaction lifecycle stages; allowed moves in `VALID_TRANSITIONS`. */
 export enum TransactionStage {
   AGREEMENT = 'agreement',
   EARNEST_MONEY = 'earnest_money',

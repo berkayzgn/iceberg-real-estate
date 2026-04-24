@@ -15,21 +15,25 @@
     "notFound": "Not found",
     "backToList": "Back to list",
     "delete": "Delete",
-    "confirmDelete": "Are you sure you want to delete?"
+    "confirmDelete": "Are you sure you want to delete?",
+    "success": "Success"
   },
   "login": {
     "title": "Sign in",
-    "subtitle": "Continue with demo credentials.",
+    "subtitle": "Continue with your account.",
+    "portalSubtitle": "Sign in to the Sales Portal",
+    "heroTitle": "Elevate Your Portfolio",
+    "heroBody": "Secure access to premium listings and advanced analytics in one professional workspace.",
     "email": "Email",
     "password": "Password",
-    "demoEmail": "admin{'@'}icebergdigital.co",
-    "passwordPlaceholder": "••••••••",
+    "emailPlaceholder": "you{'@'}company.com",
+    "passwordPlaceholder": "Your password",
     "show": "Show",
     "hide": "Hide",
     "submit": "Sign in",
     "submitting": "Signing in...",
     "invalid": "Invalid email or password.",
-    "hint": "Demo credentials are prefilled."
+    "errorTitle": "Sign-in failed"
   },
   "brand": {
     "name": "Iceberg Digital",
@@ -74,6 +78,10 @@
   },
   "transactions": {
     "transaction": "Transaction",
+    "headerRecordCount": "{count} records.",
+    "columnValue": "Value",
+    "columnStage": "Stage",
+    "columnDate": "Date",
     "searchPlaceholder": "Search by address or reference…",
     "allStages": "All stages",
     "allAgents": "All agents",
@@ -88,6 +96,10 @@
     "commission": "Commission",
     "sameAgent": "Same agent",
     "deleteError": "Transaction could not be deleted.",
+    "backToTransactions": "Transactions",
+    "toastCompleted": "Transaction completed.",
+    "toastStageUpdated": "Stage updated.",
+    "stageUpdateError": "Stage could not be updated.",
     "advanceStage": "Advance stage",
     "advance": "Advance",
     "confirmAdvance": "Advance stage?",
@@ -112,9 +124,15 @@
     "selectTitle": "Select title",
     "selectSpecialization": "Select specialization",
     "phone": "Phone",
+    "countryCode": "Country code",
+    "phoneLocal": "Local number",
+    "phoneLocalHint": "Leading 0 is optional; digits only.",
     "add": "Add",
     "added": "Agent added.",
     "addError": "Agent could not be added.",
+    "deleted": "Agent removed.",
+    "deleteError": "Agent could not be deleted.",
+    "deleteBlockedHint": "Agents assigned to transactions cannot be deleted.",
     "joined": "Joined",
     "earnings": "Earnings",
     "completed": "Completed",
@@ -125,11 +143,24 @@
     "dual": "Dual",
     "transactionHistory": "Transaction history",
     "noTransactionsYet": "No transactions yet.",
+    "titles": {
+      "salesConsultant": "Sales consultant",
+      "seniorSalesConsultant": "Senior sales consultant",
+      "portfolioConsultant": "Portfolio consultant"
+    },
+    "specializations": {
+      "residential": "Residential",
+      "luxury": "Luxury residential",
+      "commercial": "Commercial",
+      "leasing": "Leasing",
+      "investment": "Investment"
+    },
     "validation": {
       "nameRequired": "Full name is required.",
       "titleRequired": "Title is required.",
       "emailRequired": "Email is required.",
       "phoneRequired": "Phone is required.",
+      "phoneInvalid": "Local number must be 7–15 digits.",
       "specializationRequired": "Specialization is required."
     }
   },

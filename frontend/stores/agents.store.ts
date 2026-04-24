@@ -1,5 +1,6 @@
 import { defineStore } from 'pinia';
 import type { Agent } from '~/utils/domain';
+import { authorizedFetch } from '~/utils/authorized-fetch';
 const AVATAR_COLORS = ['#3B82F6', '#8B5CF6', '#EC4899', '#10B981', '#F59E0B'] as const;
 
 function makeInitials(name: string) {
@@ -79,7 +80,7 @@ export const useAgentsStore = defineStore('agents', () => {
     if (loaded.value && !force) return;
     loading.value = true;
     try {
-      const data = await $fetch<ApiAgent[]>(`${apiBase()}/agents`);
+      const data = await authorizedFetch<ApiAgent[]>(`${apiBase()}/agents`);
       agents.value = data.map(mapApiAgent);
       loaded.value = true;
     } finally {
@@ -95,7 +96,7 @@ export const useAgentsStore = defineStore('agents', () => {
     specialization: string;
   }) {
     const { firstName, lastName } = splitName(input.name);
-    const created = await $fetch<ApiAgent>(`${apiBase()}/agents`, {
+    const created = await authorizedFetch<ApiAgent>(`${apiBase()}/agents`, {
       method: 'POST',
       body: {
         firstName,
@@ -113,7 +114,7 @@ export const useAgentsStore = defineStore('agents', () => {
   }
 
   async function removeAgent(id: string) {
-    await $fetch(`${apiBase()}/agents/${id}`, { method: 'DELETE' });
+    await authorizedFetch(`${apiBase()}/agents/${id}`, { method: 'DELETE' });
     agents.value = agents.value.filter((a) => a.id !== id);
   }
 

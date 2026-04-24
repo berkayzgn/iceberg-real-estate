@@ -2,6 +2,7 @@
 import { TrendingUp, Download, ChevronRight } from "lucide-vue-next";
 import { calculateCommission, formatCurrency } from "~/utils/domain";
 import { toApiErrorInfo } from "~/utils/api-error";
+import { authorizedFetch } from "~/utils/authorized-fetch";
 const tx = useTransactionsStore();
 const agents = useAgentsStore();
 const toast = useToastStore();
@@ -69,7 +70,7 @@ function formatDateShort(dateStr: string) {
 onMounted(async () => {
   try {
     await Promise.all([agents.fetchAll(), tx.fetchAll()]);
-    summary.value = await $fetch(`${config.public.apiBase}/reports/summary`);
+    summary.value = await authorizedFetch(`${config.public.apiBase}/reports/summary`);
   } catch (error) {
     const err = toApiErrorInfo(error, "Rapor verileri alınamadı.");
     toast.error(err.message, err.title);

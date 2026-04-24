@@ -1,4 +1,5 @@
 import { defineStore } from 'pinia';
+import { authorizedFetch } from '~/utils/authorized-fetch';
 import type { Stage, Transaction } from '~/utils/domain';
 import { getNextStage, STAGE_LABELS, type ActivityEntry } from '~/utils/domain';
 
@@ -106,7 +107,7 @@ export const useTransactionsStore = defineStore('transactions', () => {
     if (loaded.value && !force) return;
     loading.value = true;
     try {
-      const list = await $fetch<ApiTransaction[]>(`${apiBase()}/transactions`);
+      const list = await authorizedFetch<ApiTransaction[]>(`${apiBase()}/transactions`);
       transactions.value = list.map(mapTransaction);
       loaded.value = true;
     } finally {
@@ -115,14 +116,14 @@ export const useTransactionsStore = defineStore('transactions', () => {
   }
 
   async function fetchById(id: string) {
-    const tx = await $fetch<ApiTransaction>(`${apiBase()}/transactions/${id}`);
+    const tx = await authorizedFetch<ApiTransaction>(`${apiBase()}/transactions/${id}`);
     return upsertTransaction(mapTransaction(tx));
   }
 
   async function addTransaction(
     input: Omit<Transaction, 'id' | 'stage' | 'date' | 'activityLog'>,
   ) {
-    const created = await $fetch<ApiTransaction>(`${apiBase()}/transactions`, {
+    const created = await authorizedFetch<ApiTransaction>(`${apiBase()}/transactions`, {
       method: 'POST',
       body: {
         propertyAddress: input.propertyAddress,
@@ -141,7 +142,7 @@ export const useTransactionsStore = defineStore('transactions', () => {
     if (!t) return null;
     const next = getNextStage(t.stage);
     if (!next) return null;
-    const updated = await $fetch<ApiTransaction>(`${apiBase()}/transactions/${id}/stage`, {
+    const updated = await authorizedFetch<ApiTransaction>(`${apiBase()}/transactions/${id}/stage`, {
       method: 'PATCH',
       body: { stage: next },
     });
@@ -152,7 +153,7 @@ export const useTransactionsStore = defineStore('transactions', () => {
     const t = findById(id);
     if (!t) return null;
     if (t.stage === stage) return t;
-    const updated = await $fetch<ApiTransaction>(`${apiBase()}/transactions/${id}/stage`, {
+    const updated = await authorizedFetch<ApiTransaction>(`${apiBase()}/transactions/${id}/stage`, {
       method: 'PATCH',
       body: { stage, note: 'Stage updated via board drag and drop.' },
     });
@@ -160,7 +161,7 @@ export const useTransactionsStore = defineStore('transactions', () => {
   }
 
   async function removeTransaction(id: string) {
-    await $fetch(`${apiBase()}/transactions/${id}`, { method: 'DELETE' });
+    await authorizedFetch(`${apiBase()}/transactions/${id}`, { method: 'DELETE' });
     transactions.value = transactions.value.filter((t) => t.id !== id);
   }
 

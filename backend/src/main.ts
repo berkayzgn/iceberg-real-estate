@@ -10,7 +10,6 @@ function parseCorsOrigins(): string[] {
   const isProd = process.env.NODE_ENV === 'production';
 
   if (!raw) {
-    // Local dev defaults (Nuxt)
     return [
       'http://localhost:3000',
       'http://127.0.0.1:3000',
@@ -21,13 +20,10 @@ function parseCorsOrigins(): string[] {
 
   if (raw === '*') {
     if (isProd) {
-      // Production'da wildcard tehlikelidir; açık bir origin listesi tanımlayın.
       console.warn(
         '[CORS] CORS_ORIGINS=* is not allowed in production. Set explicit origins.',
       );
     }
-    // Dev'de wildcard izin verilir ama `origin: true` yerine explicit liste döndür;
-    // bu şekilde credentials + wildcard kombinasyonu çalışır.
     return [];
   }
 
@@ -41,7 +37,6 @@ async function bootstrap() {
   const app = await NestFactory.create(AppModule);
   const corsOrigins = parseCorsOrigins();
   app.enableCors({
-    // Boş liste → tüm origin'leri blokla (prod'da CORS_ORIGINS=* kullanılmışsa)
     origin: corsOrigins.length > 0 ? corsOrigins : false,
     methods: ['GET', 'POST', 'PATCH', 'PUT', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization'],
@@ -57,7 +52,6 @@ async function bootstrap() {
   );
   app.useGlobalFilters(new GlobalHttpExceptionFilter());
 
-  // Swagger sadece non-production ortamda açık; prod'da SWAGGER_ENABLED=true ile açılabilir.
   const swaggerEnabled =
     process.env.NODE_ENV !== 'production' ||
     process.env.SWAGGER_ENABLED === 'true';

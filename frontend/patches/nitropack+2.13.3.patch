@@ -1,0 +1,14 @@
+diff --git a/node_modules/nitropack/dist/rollup/index.mjs b/node_modules/nitropack/dist/rollup/index.mjs
+index 9aadcbc..d1e17c6 100644
+--- a/node_modules/nitropack/dist/rollup/index.mjs
++++ b/node_modules/nitropack/dist/rollup/index.mjs
+@@ -1864,8 +1864,7 @@ const getRollupConfig = (nitro) => {
+     prerender: nitro.options.preset === "nitro-prerender",
+     server: true,
+     client: false,
+-    dev: String(nitro.options.dev),
+-    DEBUG: nitro.options.dev
++    dev: String(nitro.options.dev)
+   };
+   const staticFlags = {
+     dev: nitro.options.dev,
