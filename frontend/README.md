@@ -1,4 +1,4 @@
-# Frontend — Iceberg Digital admin panel (Nuxt 3) *(English)*
+# Frontend — Iceberg Estate admin panel (Nuxt 3) *(English)*
 
 Nuxt 3 admin UI: transaction funnel, agent management, financial reports. **Pinia** (state), **Tailwind CSS** (styling), **`@nuxtjs/i18n`** (TR / EN). API calls: `runtimeConfig.public.apiBase` + `authorizedFetch` (JWT `Authorization` header).
 
@@ -73,7 +73,7 @@ Run locally or in CI to catch type and build errors.
 
 ---
 
-# Frontend — Iceberg Digital Panel (Nuxt 3)
+# Frontend — Iceberg Emlak Paneli (Nuxt 3)
 
 Nuxt 3 ile geliştirilmiş yönetim paneli: işlem hunisi, danışman yönetimi, finansal raporlar. **Pinia** (durum), **Tailwind CSS** (stil), **`@nuxtjs/i18n`** (TR / EN). API ile iletişim: `runtimeConfig.public.apiBase` + `authorizedFetch` (JWT `Authorization` başlığı).
 

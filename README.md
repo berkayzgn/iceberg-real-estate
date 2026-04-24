@@ -1,4 +1,4 @@
-# Iceberg Digital — Real estate transactions & commission management (English)
+# Iceberg Estate — Real estate transactions & commission management (English)
 
 Monorepo: NestJS API (`backend/`) and Nuxt 3 UI (`frontend/`). Architecture and data model: **`docs/DESIGN.md`**.
 

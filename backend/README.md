@@ -1,4 +1,4 @@
-# Backend — Iceberg Digital API (NestJS) *(English)*
+# Backend — Iceberg Estate API (NestJS) *(English)*
 
 NestJS REST API for transactions, agents, commission breakdown, and reports. Full architecture, data model, and endpoint reference: **`docs/DESIGN.md`**. Monorepo root: **`README.md`**.
 
@@ -73,7 +73,7 @@ Secrets are not stored in the repo; use host environment variables / secrets onl
 
 ---
 
-# Backend — Iceberg Digital API (NestJS)
+# Backend — Iceberg Emlak API (NestJS)
 
 NestJS tabanlı REST API: işlemler, danışmanlar, komisyon dökümü ve raporlar. Tüm mimari kararlar, veri modeli ve uç nokta özeti için **`docs/DESIGN.md`**. Monorepo kökü: **`README.md`**.
 

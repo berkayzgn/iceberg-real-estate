@@ -1,4 +1,4 @@
-# DESIGN.md — Iceberg Digital: Real-estate transaction operations *(English)*
+# DESIGN.md — Iceberg Estate: Real-estate transaction operations *(English)*
 
 > Architectural decisions for an end-to-end system on the NestJS + MongoDB Atlas + Nuxt 3 stack that manages a real-estate agency’s post-agreement workflow (earnest money → title deed → completion) and commission distribution.
 
@@ -433,7 +433,7 @@ All paths use the `/api` prefix. Non-public routes require `Authorization: Beare
 
 ---
 
-# DESIGN.md — Iceberg Digital Emlak İşlem Yönetimi
+# DESIGN.md — Iceberg Emlak İşlem Yönetimi
 
 > NestJS + MongoDB Atlas + Nuxt 3 yığını üzerinde, bir emlak danışmanlık ofisinin anlaşma sonrası süreçlerini (kaparo → tapu → tamamlanma) ve komisyon dağıtımını uçtan uca yöneten sistemin mimari kararları.
 
