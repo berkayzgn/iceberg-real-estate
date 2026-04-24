@@ -8,6 +8,7 @@ const agents = useAgentsStore();
 const toast = useToastStore();
 const loading = ref(true);
 const { t } = useI18n();
+const { formatDateShort } = useDateTimeFormat();
 const summary = ref<{
   totalTransactions: number;
   totalServiceFee: number;
@@ -59,20 +60,12 @@ function getAgent(id: string) {
   return agents.findById(id);
 }
 
-function formatDateShort(dateStr: string) {
-  return new Date(dateStr).toLocaleDateString("tr-TR", {
-    day: "2-digit",
-    month: "short",
-    year: "numeric",
-  });
-}
-
 onMounted(async () => {
   try {
     await Promise.all([agents.fetchAll(), tx.fetchAll()]);
     summary.value = await authorizedFetch(`${config.public.apiBase}/reports/summary`);
   } catch (error) {
-    const err = toApiErrorInfo(error, "Rapor verileri alınamadı.");
+    const err = toApiErrorInfo(error, t, "errors.reportsLoadFailed");
     toast.error(err.message, err.title);
   } finally {
     loading.value = false;

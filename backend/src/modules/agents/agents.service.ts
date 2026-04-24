@@ -20,7 +20,7 @@ export class AgentsService {
       return await this.agentModel.create(dto);
     } catch (error: unknown) {
       if (this.isDuplicateEmailError(error)) {
-        throw new BadRequestException('Bu e-posta adresi zaten kullanımda.');
+        throw new BadRequestException('errors.emailInUse');
       }
       throw error;
     }
@@ -32,7 +32,7 @@ export class AgentsService {
 
   async findOne(id: string) {
     const agent = await this.agentModel.findById(id).lean({ virtuals: true });
-    if (!agent) throw new NotFoundException('Danışman bulunamadı.');
+    if (!agent) throw new NotFoundException('errors.agentNotFound');
     return agent;
   }
 
@@ -41,11 +41,11 @@ export class AgentsService {
       const agent = await this.agentModel
         .findByIdAndUpdate(id, dto, { new: true, runValidators: true })
         .lean({ virtuals: true });
-      if (!agent) throw new NotFoundException('Danışman bulunamadı.');
+      if (!agent) throw new NotFoundException('errors.agentNotFound');
       return agent;
     } catch (error: unknown) {
       if (this.isDuplicateEmailError(error)) {
-        throw new BadRequestException('Bu e-posta adresi zaten kullanımda.');
+        throw new BadRequestException('errors.emailInUse');
       }
       throw error;
     }
@@ -56,12 +56,10 @@ export class AgentsService {
       $or: [{ listingAgent: id }, { sellingAgent: id }],
     });
     if (inUse > 0) {
-      throw new BadRequestException(
-        'Bu danışman bir veya daha fazla işlemde atanmış; silmek için önce ilgili işlemleri kaldırın veya danışman atamalarını değiştirin.',
-      );
+      throw new BadRequestException('errors.agentInUse');
     }
     const deleted = await this.agentModel.findByIdAndDelete(id).lean({ virtuals: true });
-    if (!deleted) throw new NotFoundException('Danışman bulunamadı.');
+    if (!deleted) throw new NotFoundException('errors.agentNotFound');
     return { success: true, id };
   }
 

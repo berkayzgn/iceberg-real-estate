@@ -1,4 +1,3 @@
-/** JWT session: tab-scoped storage; new browser tabs must sign in again. */
 export const AUTH_TOKEN_STORAGE_KEY = "emlak_auth_token";
 
 function getStorage(): Storage | null {

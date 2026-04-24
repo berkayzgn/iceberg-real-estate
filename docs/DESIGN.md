@@ -1,6 +1,6 @@
 # Tasarım dokümanı (DESIGN)
 
-Bu belge, `docs/system-guide.md` kapsamındaki mimari ve tasarım kararlarını özetler. Kurulum ve canlı adresler için kök `README.md` dosyasına bakınız.
+Bu belge mimari ve tasarım kararlarını özetler. Kurulum ve dağıtım için kök `README.md` dosyasına bakınız.
 
 ## 1. Mimari
 
@@ -75,13 +75,12 @@ Doğrulama: DTO’lar ve global `ValidationPipe`. Hatalar: global exception filt
 
 Panel: özet metrikler, aşama hunisi, sürükle-bırak ile aşama güncelleme (desteklenmeyen geçişlerde uyarı). İşlem ve danışman oluşturma modalları. Danışman silme: yalnızca hiç işleme atanmamış danışmanlar (liste ve detay; onay ile).
 
-## 9. Sınırlamalar ve olası geliştirmeler
+## 9. Operasyon
 
-- CORS: Geliştirmede boş `CORS_ORIGINS` yerel Nuxt portlarına izin verir; üretimde açık origin listesi gerekir.
-- Soğuk başlatmalı barındırıcılar: İstemci açılışta `GET /api/health` ile hafif uyandırma yapabilir; gecikme tamamen ortadan kalkmaz.
-- İleride: rol bazlı yetki, denetim günlüğü, E2E pipeline, merkezi sırlar yönetimi.
+- Üretimde `CORS_ORIGINS` üzerinden izin verilen web kökleri tanımlanır.
+- `GET /api/health` sağlık kontrolü için kullanılır.
 
-## 10. `system-guide.md` uyumu (özet)
+## 10. Kapsam özeti
 
 | Madde | Durum |
 |-------|--------|
@@ -89,7 +88,7 @@ Panel: özet metrikler, aşama hunisi, sürükle-bırak ile aşama güncelleme (
 | Aşamalar ve panel | Uygun |
 | Finansal döküm | `commissionBreakdown` + raporlar |
 | Komisyon + testler | Uygulama + `npm test` |
-| Kaynak kod, DESIGN, README, canlı URL + Atlas | Repoda; operasyonel env kullanıcıya bağlı |
+| Kaynak kod, DESIGN, README, canlı URL | Repoda; operasyonel env dağıtıma bağlı |
 
 ## 11. Uç ve rota referansı
 

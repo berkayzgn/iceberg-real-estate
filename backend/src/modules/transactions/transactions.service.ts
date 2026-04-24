@@ -39,7 +39,6 @@ export class TransactionsService {
           fromStage: TransactionStage.AGREEMENT,
           toStage: TransactionStage.AGREEMENT,
           changedAt: now,
-          note: 'Transaction created.',
         },
       ],
     });
@@ -62,33 +61,25 @@ export class TransactionsService {
       .populate('listingAgent')
       .populate('sellingAgent')
       .lean();
-    if (!txn) throw new NotFoundException('İşlem bulunamadı.');
+    if (!txn) throw new NotFoundException('errors.transactionNotFound');
     return txn;
   }
 
   async updateStage(id: string, dto: UpdateStageDto) {
     const txn = await this.transactionModel.findById(id);
-    if (!txn) throw new NotFoundException('İşlem bulunamadı.');
+    if (!txn) throw new NotFoundException('errors.transactionNotFound');
 
     const current = txn.stage;
     const allowed = VALID_TRANSITIONS[current] ?? [];
     if (!allowed.includes(dto.stage)) {
-      const currentLabel = this.stageLabel(current);
-      const targetLabel = this.stageLabel(dto.stage);
-      const nextLabel = allowed.length > 0 ? this.stageLabel(allowed[0]) : null;
-
-      const detail = nextLabel
-        ? `Bu işlem ${currentLabel} aşamasındayken doğrudan ${targetLabel} aşamasına geçirilemez. Önce ${nextLabel} aşamasına ilerletmelisiniz.`
-        : `Bu işlem ${currentLabel} aşamasında ve artık ilerletilemez.`;
-
-      throw new BadRequestException(`Bu işlem yapılamaz. ${detail}`);
+      throw new BadRequestException('errors.invalidStageTransition');
     }
 
     txn.stageHistory.push({
       fromStage: current,
       toStage: dto.stage,
       changedAt: new Date(),
-      note: dto.note ?? 'Stage updated.',
+      ...(dto.note ? { note: dto.note } : {}),
     });
     txn.stage = dto.stage;
 
@@ -103,18 +94,16 @@ export class TransactionsService {
 
   async getBreakdown(id: string) {
     const txn = await this.transactionModel.findById(id).lean();
-    if (!txn) throw new NotFoundException('İşlem bulunamadı.');
+    if (!txn) throw new NotFoundException('errors.transactionNotFound');
     if (!txn.commissionBreakdown) {
-      throw new BadRequestException(
-        'Bu işlem henüz tamamlanmadı; finansal döküm hazır değil.',
-      );
+      throw new BadRequestException('errors.breakdownNotReady');
     }
     return txn.commissionBreakdown;
   }
 
   async remove(id: string) {
     const deleted = await this.transactionModel.findByIdAndDelete(id).lean();
-    if (!deleted) throw new NotFoundException('İşlem bulunamadı.');
+    if (!deleted) throw new NotFoundException('errors.transactionNotFound');
     return { success: true, id };
   }
 
@@ -136,8 +125,7 @@ export class TransactionsService {
         listingAgentShare: agentTotal,
         sellingAgentShare: 0,
         sameAgent: true,
-        reason:
-          'Listing ve selling agent aynı kişi olduğu için agent payının tamamı tek ajana verildi.',
+        reason: 'same_agent',
       };
     }
 
@@ -147,8 +135,7 @@ export class TransactionsService {
       listingAgentShare: agentTotal * 0.5,
       sellingAgentShare: agentTotal * 0.5,
       sameAgent: false,
-      reason:
-        'Listing ve selling agent farklı olduğu için agent payı eşit bölündü.',
+      reason: 'different_agents',
     };
   }
 
@@ -157,22 +144,7 @@ export class TransactionsService {
       this.agentModel.exists({ _id: listingAgent }),
       this.agentModel.exists({ _id: sellingAgent }),
     ]);
-    if (!listing) throw new BadRequestException('İlan danışmanı bulunamadı.');
-    if (!selling) throw new BadRequestException('Satış danışmanı bulunamadı.');
-  }
-
-  private stageLabel(stage: TransactionStage) {
-    switch (stage) {
-      case TransactionStage.AGREEMENT:
-        return 'Anlaşma';
-      case TransactionStage.EARNEST_MONEY:
-        return 'Kapora';
-      case TransactionStage.TITLE_DEED:
-        return 'Tapu';
-      case TransactionStage.COMPLETED:
-        return 'Tamamlandı';
-      default:
-        return stage;
-    }
+    if (!listing) throw new BadRequestException('errors.listingAgentNotFound');
+    if (!selling) throw new BadRequestException('errors.sellingAgentNotFound');
   }
 }

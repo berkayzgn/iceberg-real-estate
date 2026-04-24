@@ -1,6 +1,6 @@
 # Estate Agency API (NestJS)
 
-Backend API; gereksinim özeti `docs/system-guide.md`, mimari `docs/DESIGN.md`.
+Backend API; mimari ve uçlar `docs/DESIGN.md`.
 
 ## Gereksinimler
 

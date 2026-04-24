@@ -110,7 +110,7 @@ async function create() {
     reset();
     emit("close");
   } catch (error) {
-    const err = toApiErrorInfo(error, t("createTransaction.createError"));
+    const err = toApiErrorInfo(error, t, "createTransaction.createError");
     toast.error(err.message, err.title);
   }
 }
@@ -216,7 +216,7 @@ watch(
               min="0"
               step="500"
               class="w-full rounded-lg border border-[#E2E8F0] bg-white px-3 py-2.5 text-sm text-[#0A1628] transition-all focus:border-[#D4A853] focus:outline-none focus:ring-2 focus:ring-[#D4A853]/20"
-              :placeholder="'0'"
+              :placeholder="t('createTransaction.amountPlaceholder')"
             />
             <p v-if="errors.transactionValue" class="mt-1 text-xs text-red-500">
               {{ errors.transactionValue }}

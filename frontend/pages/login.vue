@@ -5,9 +5,6 @@ definePageMeta({
   layout: false,
 });
 
-const HERO_IMAGE =
-  "https://lh3.googleusercontent.com/aida-public/AB6AXuBC5JZusNWq14jTGshhyXCulFEVsqJtVUpDvJFwMZoBLPgwBbpWvJ7ChLL4gDx5oPnsjTBrEgKMC82VTTnSO3yo4Oplj0nru_JfuxcbbPIusyUhu-2tWxmXWUVtCSjrRyqEuM0KtVI-g4lYcBEVMYe0_eKuF7eFJWBC30INbtOz0zKlYMuTpNVbd9b01EVQ8bUFXXAguxPsGWt96By_uD1Dm1nHyCleQ2nfR-KqQMIw7h9uxEH6xrGyMNzvwlDZc4Kv7R6nQUsWvrk";
-
 const { t, locale } = useI18n();
 const auth = useAuthStore();
 const toast = useToastStore();
@@ -50,10 +47,8 @@ async function submit() {
     password.value = "";
     await navigateTo("/");
   } catch (error) {
-    const err = toApiErrorInfo(error, t("login.invalid"));
-    const unauthorized =
-      err.statusCode === 401 ||
-      /invalid email or password/i.test(err.message);
+    const err = toApiErrorInfo(error, t, "login.invalid");
+    const unauthorized = err.statusCode === 401;
     const message = unauthorized ? t("login.invalid") : err.message;
     loginError.value = message;
     toast.error(message, t("login.errorTitle"));
@@ -67,20 +62,11 @@ async function submit() {
   <div
     class="flex min-h-screen w-full bg-white font-['Inter',ui-sans-serif,system-ui,sans-serif] text-base text-[#0A1628]"
   >
-    <!-- Sol: görsel + marka (panel laciverti) -->
     <div
-      class="relative hidden w-1/2 overflow-hidden bg-[#E8EDF5] lg:block"
+      class="relative hidden w-1/2 overflow-hidden bg-[#0A1628] lg:block"
     >
-      <img
-        :src="HERO_IMAGE"
-        alt=""
-        class="absolute inset-0 h-full w-full object-cover"
-        width="1200"
-        height="1600"
-        decoding="async"
-      />
       <div
-        class="absolute inset-0 bg-gradient-to-t from-[#0A1628]/90 via-[#0A1628]/35 to-transparent"
+        class="absolute inset-0 bg-[radial-gradient(ellipse_at_30%_20%,rgba(212,168,83,0.18),transparent_50%),radial-gradient(ellipse_at_70%_80%,rgba(232,237,245,0.12),transparent_45%),linear-gradient(to_top,rgba(10,22,40,0.95),rgba(10,22,40,0.55),transparent)]"
       />
       <div class="absolute bottom-12 left-10 right-10 text-white lg:bottom-16 lg:left-16 lg:right-16">
         <h2
@@ -95,7 +81,6 @@ async function submit() {
       </div>
     </div>
 
-    <!-- Sağ: form (Iceberg renkleri) -->
     <div
       class="flex w-full items-center justify-center bg-[#FAFBFC] p-6 lg:w-1/2 lg:p-10"
     >

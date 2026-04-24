@@ -3,9 +3,7 @@ import { formatCurrency } from '~/utils/domain';
 
 const props = defineProps<{
   label: string;
-  /** Sayaç animasyonunun hedefi (React `MetricCard.value`). */
   value: number;
-  /** `plain`: tam sayı; `currency`: `formatCurrency(animated)`. */
   displayMode: 'plain' | 'currency';
 }>();
 

@@ -15,7 +15,6 @@ export const useToastStore = defineStore('toast', () => {
   function push(item: Omit<ToastItem, 'id'> & { id?: string }, ttlMs = 2600) {
     const id = item.id ?? `t-${Date.now()}-${Math.random().toString(16).slice(2)}`;
     toasts.value.unshift({ ...item, id });
-    // `window` SSR / Node’da yok; serverless’ta `setTimeout` yeterli (toast zaten pratikte client’ta tetiklenir).
     setTimeout(() => dismiss(id), ttlMs);
     return id;
   }

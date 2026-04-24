@@ -40,7 +40,6 @@ describe('AgentsService', () => {
     service = new AgentsService(agentModel as never, transactionModel as never);
   });
 
-  // ─── create ──────────────────────────────────────────────────────────────
   describe('create', () => {
     it('creates and returns the new agent document', async () => {
       const dto = { firstName: 'Ali', lastName: 'Veli', email: 'ali@test.com', phone: '0500', title: 'Agent', specialization: 'Konut' };
@@ -65,7 +64,6 @@ describe('AgentsService', () => {
     });
   });
 
-  // ─── findAll ─────────────────────────────────────────────────────────────
   describe('findAll', () => {
     it('returns sorted agent list', async () => {
       const list = [{ _id: 'a1' }, { _id: 'a2' }];
@@ -75,7 +73,6 @@ describe('AgentsService', () => {
     });
   });
 
-  // ─── findOne ─────────────────────────────────────────────────────────────
   describe('findOne', () => {
     it('returns agent when found', async () => {
       const agent = { _id: 'a1', email: 'a@b.com' };
@@ -91,7 +88,6 @@ describe('AgentsService', () => {
     });
   });
 
-  // ─── update ──────────────────────────────────────────────────────────────
   describe('update', () => {
     it('returns updated agent', async () => {
       const updated = { _id: 'a1', email: 'new@b.com' };
@@ -113,7 +109,6 @@ describe('AgentsService', () => {
     });
   });
 
-  // ─── remove ──────────────────────────────────────────────────────────────
   describe('remove', () => {
     it('returns success payload on deletion', async () => {
       agentModel.findByIdAndDelete.mockReturnValue({ lean: jest.fn().mockResolvedValue({ _id: 'a1' }) });

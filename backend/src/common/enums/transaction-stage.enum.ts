@@ -1,4 +1,3 @@
-/** Transaction lifecycle stages; allowed moves in `VALID_TRANSITIONS`. */
 export enum TransactionStage {
   AGREEMENT = 'agreement',
   EARNEST_MONEY = 'earnest_money',

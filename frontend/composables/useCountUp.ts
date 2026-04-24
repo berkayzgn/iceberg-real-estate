@@ -1,8 +1,5 @@
-import type { Ref } from 'vue';
+import type { Ref } from "vue";
 
-/**
- * React `MetricCard` ile aynı: ease-out cubic, tek seferlik sayaç.
- */
 export function useCountUp(target: Ref<number>, duration = 1200) {
   const value = ref(0);
 

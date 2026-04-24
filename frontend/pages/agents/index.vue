@@ -53,7 +53,7 @@ onMounted(async () => {
   try {
     await Promise.all([agents.fetchAll(), tx.fetchAll()]);
   } catch (error) {
-    const err = toApiErrorInfo(error, "Danışman verileri alınamadı.");
+    const err = toApiErrorInfo(error, t, "errors.agentsLoadFailed");
     toast.error(err.message, err.title);
   } finally {
     loading.value = false;
@@ -74,7 +74,7 @@ async function deleteAgentCard(agent: Agent) {
     await agents.removeAgent(agent.id);
     toast.success(t("agents.deleted"), t("common.panel"));
   } catch (error) {
-    const err = toApiErrorInfo(error, t("agents.deleteError"));
+    const err = toApiErrorInfo(error, t, "agents.deleteError");
     toast.error(err.message, err.title);
   } finally {
     deletingId.value = null;

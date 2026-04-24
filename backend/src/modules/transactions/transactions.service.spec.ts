@@ -125,6 +125,7 @@ describe('TransactionsService', () => {
         listingAgentShare: 500000,
         sellingAgentShare: 0,
         sameAgent: true,
+        reason: 'same_agent',
       });
       expect(txnDoc.completedAt).toBeInstanceOf(Date);
     });
@@ -158,6 +159,7 @@ describe('TransactionsService', () => {
         listingAgentShare: 250000,
         sellingAgentShare: 250000,
         sameAgent: false,
+        reason: 'different_agents',
       });
       expect(txnDoc.stageHistory).toHaveLength(1);
     });

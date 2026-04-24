@@ -5,7 +5,7 @@ export class AppService {
   getRoot() {
     return {
       name: 'estate-agency-api',
-      message: 'Emlak işlem API — system-guide.md',
+      message: 'Iceberg Digital transaction API',
       docs: '/api/docs',
     };
   }

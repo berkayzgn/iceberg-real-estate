@@ -133,7 +133,7 @@ async function removeAgent() {
     toast.success(t("agents.deleted"), t("common.panel"));
     await navigateTo("/agents");
   } catch (error) {
-    const err = toApiErrorInfo(error, t("agents.deleteError"));
+    const err = toApiErrorInfo(error, t, "agents.deleteError");
     toast.error(err.message, err.title);
   } finally {
     deleting.value = false;
@@ -225,7 +225,7 @@ onMounted(async () => {
       `${config.public.apiBase}/reports/agent/${id.value}`
     );
   } catch (error) {
-    const err = toApiErrorInfo(error, "Danışman detayı alınamadı.");
+    const err = toApiErrorInfo(error, t, "errors.agentDetailLoadFailed");
     toast.error(err.message, err.title);
   } finally {
     loading.value = false;

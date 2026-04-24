@@ -41,6 +41,77 @@
     "copyright": "Iceberg Digital • 2026",
     "agency": "Iceberg Digital"
   },
+  "errors": {
+    "title": "Hata",
+    "badRequestTitle": "İşlem yapılamadı",
+    "notFoundTitle": "Kayıt bulunamadı",
+    "serverTitle": "Sunucu hatası",
+    "layoutLoadFailed": "Veriler yüklenemedi.",
+    "reportsLoadFailed": "Rapor verileri alınamadı.",
+    "agentsLoadFailed": "Danışman verileri alınamadı.",
+    "agentDetailLoadFailed": "Danışman detayı alınamadı.",
+    "transactionNotFound": "İşlem bulunamadı.",
+    "invalidStageTransition": "Bu aşama geçişine izin verilmiyor.",
+    "breakdownNotReady": "Bu işlem için finansal döküm henüz hazır değil.",
+    "listingAgentNotFound": "İlan danışmanı bulunamadı.",
+    "sellingAgentNotFound": "Satış danışmanı bulunamadı.",
+    "agentNotFound": "Danışman bulunamadı.",
+    "emailInUse": "Bu e-posta adresi zaten kullanımda.",
+    "agentInUse": "Bu danışman işlemlerde atanmış; silinemez.",
+    "invalidObjectId": "Geçersiz tanımlayıcı.",
+    "authMissingToken": "Oturum gerekli.",
+    "authInvalidToken": "Oturum süresi doldu veya geçersiz.",
+    "invalidCredentials": "E-posta veya şifre hatalı."
+  },
+  "activity": {
+    "transactionCreated": "Anlaşma imzalandı. İşlem oluşturuldu.",
+    "stageChanged": "Aşama güncellendi: {from} → {to}"
+  },
+  "time": {
+    "justNow": "Az önce",
+    "minutesAgo": "{n} dk önce",
+    "hoursAgo": "{n} sa önce",
+    "daysAgo": "{n} gün önce"
+  },
+  "commission": {
+    "reason": {
+      "same_agent": "İlan ve satış danışmanı aynı kişi olduğu için ajan payının tamamı tek danışmana verildi.",
+      "different_agents": "İlan ve satış danışmanı farklı olduğu için ajan payı eşit bölündü.",
+      "fallback": "Varsayılan hesaplama."
+    }
+  },
+  "dialCountry": {
+    "turkey": "Türkiye",
+    "usCanada": "ABD / Kanada",
+    "uk": "Birleşik Krallık",
+    "germany": "Almanya",
+    "france": "Fransa",
+    "italy": "İtalya",
+    "spain": "İspanya",
+    "netherlands": "Hollanda",
+    "belgium": "Belçika",
+    "austria": "Avusturya",
+    "switzerland": "İsviçre",
+    "sweden": "İsveç",
+    "norway": "Norveç",
+    "denmark": "Danimarka",
+    "poland": "Polonya",
+    "romania": "Romanya",
+    "bulgaria": "Bulgaristan",
+    "greece": "Yunanistan",
+    "cyprus": "Kıbrıs",
+    "azerbaijan": "Azerbaycan",
+    "israel": "İsrail",
+    "uae": "BAE",
+    "saudiArabia": "Suudi Arabistan",
+    "russiaKazakhstan": "Rusya / Kazakistan",
+    "ukraine": "Ukrayna",
+    "china": "Çin",
+    "japan": "Japonya",
+    "southKorea": "Güney Kore",
+    "india": "Hindistan",
+    "australia": "Avustralya"
+  },
   "dashboard": {
     "subtitle": "Özet metrikler ve işlem hunisi.",
     "apiHealth": "API sağlık:",
@@ -74,7 +145,8 @@
       "next": "Sonraki"
     },
     "toastStageMoved": "İşlem {stage} aşamasına taşındı.",
-    "toastStageError": "Aşama güncellenemedi."
+    "toastStageError": "Aşama güncellenemedi.",
+    "activityPageStatus": "{total} kayıt · {start}–{end}"
   },
   "transactions": {
     "transaction": "İşlem",
@@ -95,6 +167,7 @@
     "sellingAgent": "Satış danışmanı",
     "commission": "Komisyon",
     "sameAgent": "Aynı danışman",
+    "sameAgentSinglePayout": "Aynı danışman: tek pay ({amount})",
     "deleteError": "İşlem silinemedi.",
     "backToTransactions": "İşlemler",
     "toastCompleted": "İşlem tamamlandı.",
@@ -111,7 +184,8 @@
     "agency": "Ajans",
     "listing": "İlan",
     "selling": "Satış",
-    "modalOpening": "Modal açılıyor… Eğer açılmadıysa"
+    "advanceIrreversible": "Aşama ilerletildikten sonra geri alınamaz.",
+    "createFormHint": "Form yan panelde açılır. Görünmüyorsa"
   },
   "agents": {
     "count": "{count} kişi.",
@@ -206,6 +280,7 @@
     "listing25": "İlan %25",
     "selling25": "Satış %25",
     "enterAmountForPreview": "Önizleme için tutar girin.",
+    "amountPlaceholder": "0",
     "create": "Oluştur",
     "created": "İşlem oluşturuldu.",
     "createError": "İşlem oluşturulamadı.",

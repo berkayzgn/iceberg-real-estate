@@ -16,10 +16,11 @@ export interface Agent {
 export interface ActivityEntry {
   id: string;
   timestamp: string;
-  type: 'stage_change' | 'note' | 'financial';
-  description: string;
+  type: 'stage_change' | 'financial';
   fromStage?: Stage;
   toStage?: Stage;
+  note?: string | null;
+  financialReasonKey?: string;
 }
 
 export interface Transaction {
@@ -40,14 +41,6 @@ export interface MonthlyData {
   agencyShare: number;
   agentShare: number;
 }
-
-/** Stage labels for UI (Turkish copy). */
-export const STAGE_LABELS: Record<Stage, string> = {
-  agreement: 'Anlaşma',
-  earnest_money: 'Kapora',
-  title_deed: 'Tapu',
-  completed: 'Tamamlandı',
-};
 
 export const STAGE_ORDER: Stage[] = ['agreement', 'earnest_money', 'title_deed', 'completed'];
 
@@ -78,29 +71,12 @@ export function calculateCommission(transaction: Transaction) {
   };
 }
 
-/** Para birimi: USD (gösterim). */
 export function formatCurrency(value: number): string {
   return new Intl.NumberFormat('en-US', {
     style: 'currency',
     currency: 'USD',
     maximumFractionDigits: 0,
   }).format(value);
-}
-
-export function formatDate(dateStr: string): string {
-  const d = new Date(dateStr);
-  return d.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
-}
-
-export function timeAgo(dateStr: string): string {
-  const now = new Date();
-  const d = new Date(dateStr);
-  const diff = Math.floor((now.getTime() - d.getTime()) / 1000);
-  if (diff < 60) return 'Az önce';
-  if (diff < 3600) return `${Math.floor(diff / 60)} dk önce`;
-  if (diff < 86400) return `${Math.floor(diff / 3600)} sa önce`;
-  if (diff < 604800) return `${Math.floor(diff / 86400)} gün önce`;
-  return formatDate(dateStr);
 }
 
 export function getAgentStats(agentId: string, transactions: Transaction[]) {

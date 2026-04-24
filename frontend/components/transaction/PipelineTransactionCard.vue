@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import type { Agent, Transaction } from '~/utils/domain';
-import { calculateCommission, formatCurrency } from '~/utils/domain';
+import type { Agent, Transaction } from "~/utils/domain";
+import { calculateCommission, formatCurrency } from "~/utils/domain";
 
 const props = defineProps<{
   transaction: Transaction;
@@ -8,6 +8,7 @@ const props = defineProps<{
   cardBg?: string;
 }>();
 
+const { t } = useI18n();
 const comm = computed(() => calculateCommission(props.transaction));
 const listing = computed(() => props.getAgent(props.transaction.listingAgentId));
 const selling = computed(() => props.getAgent(props.transaction.sellingAgentId));
@@ -15,9 +16,15 @@ const isSame = computed(
   () => props.transaction.listingAgentId === props.transaction.sellingAgentId,
 );
 
-const title = computed(() => props.transaction.propertyAddress.split(',')[0] ?? '');
+const title = computed(() => props.transaction.propertyAddress.split(",")[0] ?? "");
 const subtitle = computed(() =>
-  props.transaction.propertyAddress.split(',').slice(1).join(',').trim(),
+  props.transaction.propertyAddress.split(",").slice(1).join(",").trim(),
+);
+
+const typeLabel = computed(() =>
+  props.transaction.propertyType === "sale"
+    ? t("transactions.sale")
+    : t("transactions.rental"),
 );
 </script>
 
@@ -41,7 +48,7 @@ const subtitle = computed(() =>
             : 'bg-purple-50 text-purple-600'
         "
       >
-        {{ transaction.propertyType === 'sale' ? 'Satış' : 'Kiralama' }}
+        {{ typeLabel }}
       </span>
     </div>
     <p class="mb-3 truncate text-xs text-[#64748B]">{{ subtitle }}</p>

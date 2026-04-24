@@ -1,4 +1,3 @@
-/** Optional cold-start warmup: unauthenticated GET /api/health. */
 export default defineNuxtPlugin(() => {
   const config = useRuntimeConfig();
   const api = config.public.apiBase;

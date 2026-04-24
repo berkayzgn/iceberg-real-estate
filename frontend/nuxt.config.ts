@@ -1,4 +1,3 @@
-// https://nuxt.com/docs/api/configuration/nuxt-config
 /// <reference types="node" />
 import { fileURLToPath } from "node:url";
 import { resolveModulePath } from "exsolve";

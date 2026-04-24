@@ -1,3 +1,5 @@
+import type { Composer } from "vue-i18n";
+
 type ApiErrorPayload = {
   statusCode?: number;
   message?: string | string[];
@@ -45,39 +47,48 @@ function resolveStatusCode(error: unknown, payload: ApiErrorPayload | null) {
   return maybe.statusCode ?? maybe.status ?? maybe.response?.status;
 }
 
+function translateIfKey(raw: string, t: Composer["t"]): string {
+  const m = raw.trim();
+  if (m.startsWith("errors.")) return String(t(m));
+  return m;
+}
+
 export function toApiErrorInfo(
   error: unknown,
-  fallbackMessage: string
+  t: Composer["t"],
+  fallbackMessageKey: string,
 ): ApiErrorInfo {
   const payload = readPayload(error);
   const statusCode = resolveStatusCode(error, payload);
 
-  let message = fallbackMessage;
+  let message = String(t(fallbackMessageKey));
 
   if (Array.isArray(payload?.message) && payload.message.length > 0) {
-    message = payload.message.map(String).join(" | ");
+    const parts = payload.message.map(String);
+    message = parts.map((p) => (p.startsWith("errors.") ? String(t(p)) : p)).join(" | ");
   } else if (typeof payload?.message === "string" && payload.message.trim()) {
-    message = payload.message;
+    message = translateIfKey(payload.message, t);
   } else if (Array.isArray(payload?.errors) && payload.errors.length > 0) {
     message = payload.errors.map(String).join(" | ");
   } else if (error instanceof Error && error.message?.trim()) {
-    // Avoid exposing generic HTTP phrases like "Bad Request" when no API detail exists.
     const raw = error.message;
-    if (
+    if (raw.startsWith("errors.")) {
+      message = String(t(raw));
+    } else if (
       /\b(400|401|403|404|500)\b|Bad Request|Not Found|Failed to fetch/i.test(
-        raw
+        raw,
       )
     ) {
-      message = fallbackMessage;
+      message = String(t(fallbackMessageKey));
     } else {
       message = raw;
     }
   }
 
-  let title = "Hata";
-  if (statusCode === 400) title = "Bu işlem yapılamaz";
-  if (statusCode === 404) title = "Kayıt bulunamadı";
-  if (statusCode && statusCode >= 500) title = "Sunucu hatası";
+  let title = String(t("errors.title"));
+  if (statusCode === 400) title = String(t("errors.badRequestTitle"));
+  if (statusCode === 404) title = String(t("errors.notFoundTitle"));
+  if (statusCode && statusCode >= 500) title = String(t("errors.serverTitle"));
 
   return { message, title, statusCode };
 }

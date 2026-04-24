@@ -1,7 +1,8 @@
 import { defineStore } from 'pinia';
 import { authorizedFetch } from '~/utils/authorized-fetch';
+import { normalizeCommissionReasonKey } from '~/utils/commission-reason';
 import type { Stage, Transaction } from '~/utils/domain';
-import { getNextStage, STAGE_LABELS, type ActivityEntry } from '~/utils/domain';
+import { getNextStage, type ActivityEntry } from '~/utils/domain';
 
 type ApiAgentRef = string | { _id: string };
 type ApiStageHistory = {
@@ -43,13 +44,9 @@ function mapActivityLog(tx: ApiTransaction): ActivityEntry[] {
       id: `al-${tx._id}-${index + 1}`,
       timestamp: entry.changedAt,
       type: 'stage_change' as const,
-        description:
-        entry.note ||
-        (entry.fromStage === entry.toStage
-          ? 'Anlaşma imzalandı. İşlem oluşturuldu.'
-          : `Aşama güncellendi: ${STAGE_LABELS[entry.fromStage]} → ${STAGE_LABELS[entry.toStage]}`),
       fromStage: entry.fromStage,
       toStage: entry.toStage,
+      note: entry.note ?? undefined,
     })) ?? [];
 
   if (tx.commissionBreakdown) {
@@ -57,7 +54,7 @@ function mapActivityLog(tx: ApiTransaction): ActivityEntry[] {
       id: `al-${tx._id}-financial`,
       timestamp: tx.completedAt ?? tx.createdAt ?? new Date().toISOString(),
       type: 'financial',
-      description: tx.commissionBreakdown.reason,
+      financialReasonKey: normalizeCommissionReasonKey(tx.commissionBreakdown.reason),
     });
   }
 
@@ -155,7 +152,7 @@ export const useTransactionsStore = defineStore('transactions', () => {
     if (t.stage === stage) return t;
     const updated = await authorizedFetch<ApiTransaction>(`${apiBase()}/transactions/${id}/stage`, {
       method: 'PATCH',
-      body: { stage, note: 'Stage updated via board drag and drop.' },
+      body: { stage },
     });
     return upsertTransaction(mapTransaction(updated));
   }
@@ -185,4 +182,3 @@ export const useTransactionsStore = defineStore('transactions', () => {
     clear,
   };
 });
-

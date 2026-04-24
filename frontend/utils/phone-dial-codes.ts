@@ -1,44 +1,46 @@
-/** Country / region calling codes for agent phone entry (E.164 prefix). */
+import type { Composer } from "vue-i18n";
+
 export type PhoneDialOption = {
   dial: string;
-  nameTr: string;
-  nameEn: string;
+  country: string;
 };
 
 export const PHONE_DIAL_OPTIONS: PhoneDialOption[] = [
-  { dial: "+90", nameTr: "Türkiye", nameEn: "Turkey" },
-  { dial: "+1", nameTr: "ABD / Kanada", nameEn: "United States / Canada" },
-  { dial: "+44", nameTr: "Birleşik Krallık", nameEn: "United Kingdom" },
-  { dial: "+49", nameTr: "Almanya", nameEn: "Germany" },
-  { dial: "+33", nameTr: "Fransa", nameEn: "France" },
-  { dial: "+39", nameTr: "İtalya", nameEn: "Italy" },
-  { dial: "+34", nameTr: "İspanya", nameEn: "Spain" },
-  { dial: "+31", nameTr: "Hollanda", nameEn: "Netherlands" },
-  { dial: "+32", nameTr: "Belçika", nameEn: "Belgium" },
-  { dial: "+43", nameTr: "Avusturya", nameEn: "Austria" },
-  { dial: "+41", nameTr: "İsviçre", nameEn: "Switzerland" },
-  { dial: "+46", nameTr: "İsveç", nameEn: "Sweden" },
-  { dial: "+47", nameTr: "Norveç", nameEn: "Norway" },
-  { dial: "+45", nameTr: "Danimarka", nameEn: "Denmark" },
-  { dial: "+48", nameTr: "Polonya", nameEn: "Poland" },
-  { dial: "+40", nameTr: "Romanya", nameEn: "Romania" },
-  { dial: "+359", nameTr: "Bulgaristan", nameEn: "Bulgaria" },
-  { dial: "+30", nameTr: "Yunanistan", nameEn: "Greece" },
-  { dial: "+357", nameTr: "Kıbrıs", nameEn: "Cyprus" },
-  { dial: "+994", nameTr: "Azerbaycan", nameEn: "Azerbaijan" },
-  { dial: "+972", nameTr: "İsrail", nameEn: "Israel" },
-  { dial: "+971", nameTr: "BAE", nameEn: "United Arab Emirates" },
-  { dial: "+966", nameTr: "Suudi Arabistan", nameEn: "Saudi Arabia" },
-  { dial: "+7", nameTr: "Rusya / Kazakistan", nameEn: "Russia / Kazakhstan" },
-  { dial: "+380", nameTr: "Ukrayna", nameEn: "Ukraine" },
-  { dial: "+86", nameTr: "Çin", nameEn: "China" },
-  { dial: "+81", nameTr: "Japonya", nameEn: "Japan" },
-  { dial: "+82", nameTr: "Güney Kore", nameEn: "South Korea" },
-  { dial: "+91", nameTr: "Hindistan", nameEn: "India" },
-  { dial: "+61", nameTr: "Avustralya", nameEn: "Australia" },
+  { dial: "+90", country: "turkey" },
+  { dial: "+1", country: "usCanada" },
+  { dial: "+44", country: "uk" },
+  { dial: "+49", country: "germany" },
+  { dial: "+33", country: "france" },
+  { dial: "+39", country: "italy" },
+  { dial: "+34", country: "spain" },
+  { dial: "+31", country: "netherlands" },
+  { dial: "+32", country: "belgium" },
+  { dial: "+43", country: "austria" },
+  { dial: "+41", country: "switzerland" },
+  { dial: "+46", country: "sweden" },
+  { dial: "+47", country: "norway" },
+  { dial: "+45", country: "denmark" },
+  { dial: "+48", country: "poland" },
+  { dial: "+40", country: "romania" },
+  { dial: "+359", country: "bulgaria" },
+  { dial: "+30", country: "greece" },
+  { dial: "+357", country: "cyprus" },
+  { dial: "+994", country: "azerbaijan" },
+  { dial: "+972", country: "israel" },
+  { dial: "+971", country: "uae" },
+  { dial: "+966", country: "saudiArabia" },
+  { dial: "+7", country: "russiaKazakhstan" },
+  { dial: "+380", country: "ukraine" },
+  { dial: "+86", country: "china" },
+  { dial: "+81", country: "japan" },
+  { dial: "+82", country: "southKorea" },
+  { dial: "+91", country: "india" },
+  { dial: "+61", country: "australia" },
 ];
 
-export function phoneDialLabel(opt: PhoneDialOption, locale: string): string {
-  const name = locale === "tr" ? opt.nameTr : opt.nameEn;
-  return `${name} (${opt.dial})`;
+export function formatDialOptionLabel(
+  opt: PhoneDialOption,
+  t: Composer["t"],
+): string {
+  return `${t(`dialCountry.${opt.country}`)} (${opt.dial})`;
 }

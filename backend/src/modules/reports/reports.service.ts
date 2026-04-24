@@ -49,7 +49,7 @@ export class ReportsService {
 
   async getAgentReport(agentId: string) {
     const agent = await this.agentModel.findById(agentId).lean({ virtuals: true });
-    if (!agent) throw new NotFoundException('Danışman bulunamadı.');
+    if (!agent) throw new NotFoundException('errors.agentNotFound');
 
     const completed = await this.transactionModel
       .find({
@@ -143,7 +143,7 @@ export class ReportsService {
           listingAgentShare: agentTotal,
           sellingAgentShare: 0,
           sameAgent: true,
-          reason: 'Varsayılan hesaplama',
+          reason: 'fallback',
         }
       : {
           agencyShare,
@@ -151,7 +151,7 @@ export class ReportsService {
           listingAgentShare: agentTotal * 0.5,
           sellingAgentShare: agentTotal * 0.5,
           sameAgent: false,
-          reason: 'Varsayılan hesaplama',
+          reason: 'fallback',
         };
   }
 }

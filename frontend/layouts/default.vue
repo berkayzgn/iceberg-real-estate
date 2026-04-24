@@ -5,13 +5,14 @@ const ui = useUiStore();
 const tx = useTransactionsStore();
 const agents = useAgentsStore();
 const toast = useToastStore();
+const { t } = useI18n();
 
 onMounted(async () => {
   try {
     await Promise.all([agents.fetchAll(), tx.fetchAll()]);
   } catch (error) {
-    const err = toApiErrorInfo(error, "Veriler yüklenemedi.");
-    toast.error(err.message, "Bağlantı hatası");
+    const err = toApiErrorInfo(error, t, "errors.layoutLoadFailed");
+    toast.error(err.message, err.title);
   }
 });
 </script>

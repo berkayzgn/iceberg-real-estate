@@ -48,7 +48,6 @@ describe('ReportsService', () => {
     service = new ReportsService(transactionModel as never, agentModel as never);
   });
 
-  // ─── getSummary ───────────────────────────────────────────────────────────
   describe('getSummary', () => {
     it('returns zero totals when no completed transactions', async () => {
       transactionModel.find.mockReturnValue({ lean: jest.fn().mockResolvedValue([]) });
@@ -89,7 +88,6 @@ describe('ReportsService', () => {
     });
   });
 
-  // ─── getAgentReport ───────────────────────────────────────────────────────
   describe('getAgentReport', () => {
     const agent = {
       _id: 'agent-1',

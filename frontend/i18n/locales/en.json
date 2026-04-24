@@ -41,6 +41,77 @@
     "copyright": "Iceberg Digital • 2026",
     "agency": "Iceberg Digital"
   },
+  "errors": {
+    "title": "Error",
+    "badRequestTitle": "Request could not be completed",
+    "notFoundTitle": "Not found",
+    "serverTitle": "Server error",
+    "layoutLoadFailed": "Could not load data.",
+    "reportsLoadFailed": "Could not load report data.",
+    "agentsLoadFailed": "Could not load agents.",
+    "agentDetailLoadFailed": "Could not load agent details.",
+    "transactionNotFound": "Transaction not found.",
+    "invalidStageTransition": "This stage change is not allowed.",
+    "breakdownNotReady": "Financial breakdown is not available for this transaction yet.",
+    "listingAgentNotFound": "Listing agent not found.",
+    "sellingAgentNotFound": "Selling agent not found.",
+    "agentNotFound": "Agent not found.",
+    "emailInUse": "This email is already in use.",
+    "agentInUse": "This agent is assigned to transactions and cannot be removed.",
+    "invalidObjectId": "Invalid identifier.",
+    "authMissingToken": "Sign in required.",
+    "authInvalidToken": "Session expired. Please sign in again.",
+    "invalidCredentials": "Invalid email or password."
+  },
+  "activity": {
+    "transactionCreated": "Agreement signed. Transaction created.",
+    "stageChanged": "Stage updated: {from} → {to}"
+  },
+  "time": {
+    "justNow": "Just now",
+    "minutesAgo": "{n} min ago",
+    "hoursAgo": "{n} h ago",
+    "daysAgo": "{n} days ago"
+  },
+  "commission": {
+    "reason": {
+      "same_agent": "Full agent commission allocated to one agent (same listing and selling agent).",
+      "different_agents": "Agent commission split equally between listing and selling agents.",
+      "fallback": "Default calculation."
+    }
+  },
+  "dialCountry": {
+    "turkey": "Turkey",
+    "usCanada": "United States / Canada",
+    "uk": "United Kingdom",
+    "germany": "Germany",
+    "france": "France",
+    "italy": "Italy",
+    "spain": "Spain",
+    "netherlands": "Netherlands",
+    "belgium": "Belgium",
+    "austria": "Austria",
+    "switzerland": "Switzerland",
+    "sweden": "Sweden",
+    "norway": "Norway",
+    "denmark": "Denmark",
+    "poland": "Poland",
+    "romania": "Romania",
+    "bulgaria": "Bulgaria",
+    "greece": "Greece",
+    "cyprus": "Cyprus",
+    "azerbaijan": "Azerbaijan",
+    "israel": "Israel",
+    "uae": "United Arab Emirates",
+    "saudiArabia": "Saudi Arabia",
+    "russiaKazakhstan": "Russia / Kazakhstan",
+    "ukraine": "Ukraine",
+    "china": "China",
+    "japan": "Japan",
+    "southKorea": "South Korea",
+    "india": "India",
+    "australia": "Australia"
+  },
   "dashboard": {
     "subtitle": "Summary metrics and transaction funnel.",
     "apiHealth": "API health:",
@@ -74,7 +145,8 @@
       "next": "Next"
     },
     "toastStageMoved": "Transaction moved to {stage}.",
-    "toastStageError": "Stage update failed."
+    "toastStageError": "Stage update failed.",
+    "activityPageStatus": "{total} records · {start}–{end}"
   },
   "transactions": {
     "transaction": "Transaction",
@@ -95,6 +167,7 @@
     "sellingAgent": "Selling agent",
     "commission": "Commission",
     "sameAgent": "Same agent",
+    "sameAgentSinglePayout": "Same agent: single payout ({amount})",
     "deleteError": "Transaction could not be deleted.",
     "backToTransactions": "Transactions",
     "toastCompleted": "Transaction completed.",
@@ -111,7 +184,8 @@
     "agency": "Agency",
     "listing": "Listing",
     "selling": "Selling",
-    "modalOpening": "Modal is opening… If it did not open,"
+    "advanceIrreversible": "You cannot undo this after advancing.",
+    "createFormHint": "The form opens in the side panel. If it is hidden, return to"
   },
   "agents": {
     "count": "{count} people.",
@@ -206,6 +280,7 @@
     "listing25": "Listing 25%",
     "selling25": "Selling 25%",
     "enterAmountForPreview": "Enter amount to preview.",
+    "amountPlaceholder": "0",
     "create": "Create",
     "created": "Transaction created.",
     "createError": "Transaction could not be created.",

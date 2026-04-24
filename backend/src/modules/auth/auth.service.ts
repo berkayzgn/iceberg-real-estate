@@ -14,11 +14,11 @@ export class AuthService {
   async login(dto: LoginDto): Promise<{ accessToken: string }> {
     const user = await this.usersService.findByEmail(dto.email);
     if (!user) {
-      throw new UnauthorizedException('Invalid email or password');
+      throw new UnauthorizedException('errors.invalidCredentials');
     }
     const ok = await bcrypt.compare(dto.password, user.passwordHash);
     if (!ok) {
-      throw new UnauthorizedException('Invalid email or password');
+      throw new UnauthorizedException('errors.invalidCredentials');
     }
     const payload = { sub: String(user._id), email: user.email };
     const accessToken = await this.jwtService.signAsync(payload);

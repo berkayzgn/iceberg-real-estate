@@ -25,7 +25,7 @@ import { TransactionsModule } from './modules/transactions/transactions.module';
         const uri = configService.get<string>('database.uri');
         if (!uri) {
           throw new Error(
-            'MONGODB_URI tanımlı değil. backend/.env.example dosyasını backend/.env olarak kopyalayıp MONGODB_URI ekleyin (Atlas veya yerel MongoDB).',
+            'MONGODB_URI is not set. Copy backend/.env.example to backend/.env and set MONGODB_URI.',
           );
         }
         return { uri };

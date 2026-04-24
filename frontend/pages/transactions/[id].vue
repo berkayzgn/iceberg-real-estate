@@ -2,11 +2,12 @@
 import {
   calculateCommission,
   formatCurrency,
-  timeAgo,
   getNextStage,
   STAGE_COLORS,
   STAGE_ORDER,
+  type ActivityEntry,
 } from "~/utils/domain";
+import { formatActivityEntry } from "~/utils/format-activity";
 import { toApiErrorInfo } from "~/utils/api-error";
 import { authorizedFetch } from "~/utils/authorized-fetch";
 import {
@@ -27,6 +28,11 @@ const agents = useAgentsStore();
 const config = useRuntimeConfig();
 const loading = ref(true);
 const { t } = useI18n();
+const { timeAgo } = useDateTimeFormat();
+
+function activityText(entry: ActivityEntry) {
+  return formatActivityEntry(entry, t);
+}
 
 type ApiBreakdown = {
   agencyShare: number;
@@ -89,7 +95,7 @@ async function advance() {
     }
     showConfirm.value = false;
   } catch (error) {
-    const err = toApiErrorInfo(error, t("transactions.stageUpdateError"));
+    const err = toApiErrorInfo(error, t, "transactions.stageUpdateError");
     toast.error(err.message, err.title);
   }
 }
@@ -104,7 +110,7 @@ async function removeTransaction() {
     toast.success(t("common.delete"), t("common.panel"));
     await navigateTo("/transactions");
   } catch (error) {
-    const err = toApiErrorInfo(error, t("transactions.deleteError"));
+    const err = toApiErrorInfo(error, t, "transactions.deleteError");
     toast.error(err.message, err.title);
   }
 }
@@ -124,9 +130,7 @@ onMounted(async () => {
         apiBreakdown.value = await authorizedFetch<ApiBreakdown>(
           `${config.public.apiBase}/transactions/${id.value}/breakdown`
         );
-      } catch {
-        // breakdown alınamazsa local hesaplamaya düş
-      }
+      } catch {}
     }
   } finally {
     loading.value = false;
@@ -155,7 +159,6 @@ onMounted(async () => {
       {{ t("transactions.backToTransactions") }}
     </NuxtLink>
     <div class="mx-auto max-w-[1200px]">
-      <!-- Header Card -->
       <div
         class="mb-5 rounded-2xl border border-[#E2E8F0] bg-white p-6 shadow-[0_1px_3px_rgba(0,0,0,0.06)]"
       >
@@ -212,7 +215,9 @@ onMounted(async () => {
                   "
                 >
                   {{
-                    transaction.propertyType === "sale" ? "Satış" : "Kiralama"
+                    transaction.propertyType === "sale"
+                      ? t("transactions.sale")
+                      : t("transactions.rental")
                   }}
                 </span>
               </div>
@@ -263,7 +268,6 @@ onMounted(async () => {
           </div>
         </div>
 
-        <!-- Stepper -->
         <div class="border-t border-[#F1F5F9] pt-6">
           <div class="flex flex-wrap items-center gap-3">
             <div
@@ -303,7 +307,6 @@ onMounted(async () => {
       </div>
 
       <div class="grid grid-cols-1 gap-5 lg:grid-cols-3">
-        <!-- Commission breakdown -->
         <div
           class="rounded-2xl border border-[#E2E8F0] bg-white p-6 shadow-[0_1px_3px_rgba(0,0,0,0.06)]"
         >
@@ -338,7 +341,6 @@ onMounted(async () => {
           </div>
         </div>
 
-        <!-- Agent assignments -->
         <div
           class="rounded-2xl border border-[#E2E8F0] bg-white p-6 shadow-[0_1px_3px_rgba(0,0,0,0.06)]"
         >
@@ -413,9 +415,11 @@ onMounted(async () => {
               class="rounded-xl border border-amber-100 bg-amber-50 p-3"
             >
               <p class="text-xs font-medium text-amber-700">
-                Aynı danışman: tek pay ({{
-                  formatCurrency(comm?.listingAgent ?? 0)
-                }})
+                {{
+                  t("transactions.sameAgentSinglePayout", {
+                    amount: formatCurrency(comm?.listingAgent ?? 0),
+                  })
+                }}
               </p>
             </div>
 
@@ -450,7 +454,6 @@ onMounted(async () => {
           </div>
         </div>
 
-        <!-- Activity timeline -->
         <div
           class="rounded-2xl border border-[#E2E8F0] bg-white p-6 shadow-[0_1px_3px_rgba(0,0,0,0.06)]"
         >
@@ -485,7 +488,7 @@ onMounted(async () => {
                 </div>
                 <div class="flex-1 pb-1 pt-0.5">
                   <p class="text-sm leading-relaxed text-[#0A1628]">
-                    {{ entry.description }}
+                    {{ activityText(entry) }}
                   </p>
                   <div
                     v-if="entry.fromStage && entry.toStage"
@@ -505,7 +508,6 @@ onMounted(async () => {
         </div>
       </div>
 
-      <!-- Confirm Modal -->
       <div
         v-if="showConfirm && nextStage"
         class="fixed inset-0 z-50 flex items-center justify-center p-4"
@@ -528,7 +530,7 @@ onMounted(async () => {
             </h3>
           </div>
           <p class="mb-2 text-sm text-[#64748B]">
-            Bu işlem aşaması değiştirilecek.
+            {{ t("transactions.stageWillChange") }}
           </p>
           <div
             class="mb-6 flex items-center gap-3 rounded-xl border border-[#E2E8F0] bg-[#FAFBFC] p-3"
@@ -542,7 +544,7 @@ onMounted(async () => {
             </span>
           </div>
           <p class="mb-5 text-xs text-[#94A3B8]">
-            Bu işlem aşamaya geçildikten sonra geri alınamaz.
+            {{ t("transactions.advanceIrreversible") }}
           </p>
           <div class="flex gap-3">
             <button
@@ -550,7 +552,7 @@ onMounted(async () => {
               class="flex-1 rounded-xl border border-[#E2E8F0] py-2.5 text-sm font-medium text-[#64748B] transition-colors hover:bg-[#F1F5F9]"
               @click="showConfirm = false"
             >
-              Vazgeç
+              {{ t("common.cancel") }}
             </button>
             <button
               type="button"
@@ -558,7 +560,7 @@ onMounted(async () => {
               style="background-color: #d4a853"
               @click="advance"
             >
-              İlerlet
+              {{ t("transactions.advance") }}
             </button>
           </div>
         </div>

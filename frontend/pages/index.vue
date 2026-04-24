@@ -5,14 +5,16 @@ import {
   STAGE_COLORS,
   type Stage,
   calculateCommission,
-  timeAgo,
 } from "~/utils/domain";
+import { formatActivityEntry } from "~/utils/format-activity";
 import { toApiErrorInfo } from "~/utils/api-error";
+
 const tx = useTransactionsStore();
 const ui = useUiStore();
 const toast = useToastStore();
 const agents = useAgentsStore();
 const { t } = useI18n();
+const { timeAgo } = useDateTimeFormat();
 
 const draggingTransactionId = ref<string | null>(null);
 const dragOverStage = ref<Stage | null>(null);
@@ -62,17 +64,18 @@ const metrics = computed(() => [
 
 const allActivity = computed(() =>
   tx.transactions
-    .flatMap((t) =>
-      t.activityLog.map((a) => ({
+    .flatMap((txn) =>
+      txn.activityLog.map((a) => ({
         ...a,
-        transactionId: t.id,
-        address: t.propertyAddress.split(",")[0] ?? "",
-      }))
+        transactionId: txn.id,
+        address: txn.propertyAddress.split(",")[0] ?? "",
+        displayText: formatActivityEntry(a, t),
+      })),
     )
     .sort(
       (a, b) =>
-        new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
-    )
+        new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime(),
+    ),
 );
 
 const filteredActivity = computed(() =>
@@ -99,7 +102,6 @@ function stageTxns(stage: (typeof STAGE_ORDER)[number]) {
 }
 
 function stageCardBg(stage: (typeof STAGE_ORDER)[number]) {
-  // subtle tint per stage so cards are visually distinguishable
   return STAGE_COLORS[stage].bg;
 }
 
@@ -121,7 +123,6 @@ function onDragEnd() {
 }
 
 function onDragOver(stage: Stage) {
-  // Sadece sürüklenen işlemin bir sonraki geçerli aşamasına drop izni ver
   const current = draggingTransactionId.value
     ? tx.findById(draggingTransactionId.value)
     : null;
@@ -137,7 +138,6 @@ async function onDrop(stage: Stage) {
   const current = tx.findById(transactionId);
   if (!current) return;
   if (current.stage === stage) return;
-  // Client-side guard: sadece geçerli sonraki aşamaya drop
   if (getNextStage(current.stage) !== stage) return;
 
   try {
@@ -145,7 +145,7 @@ async function onDrop(stage: Stage) {
     await tx.fetchAll(true);
     toast.success(t("dashboard.toastStageMoved", { stage: stageLabel(stage) }));
   } catch (error) {
-    const err = toApiErrorInfo(error, t("dashboard.toastStageError"));
+    const err = toApiErrorInfo(error, t, "dashboard.toastStageError");
     toast.error(err.message, err.title);
   }
 }
@@ -254,7 +254,7 @@ onMounted(async () => {
               @dragstart="onDragStart($event, t.id)"
               @dragend="onDragEnd"
             >
-              <TransactionDemoTransactionCard
+              <TransactionPipelineTransactionCard
                 :transaction="t"
                 :get-agent="getAgent"
                 :card-bg="stageCardBg(stage)"
@@ -313,7 +313,7 @@ onMounted(async () => {
               {{ activity.address }}
             </p>
             <p class="truncate text-xs text-[#64748B]">
-              {{ activity.description }}
+              {{ activity.displayText }}
             </p>
             <div>
               <span
@@ -347,18 +347,19 @@ onMounted(async () => {
         <div
           class="flex items-center justify-between border-t border-[#F1F5F9] px-4 py-3 text-xs text-[#64748B]"
         >
-          <span>
-            {{ filteredActivity.length }} kayıttan
-            {{
-              pagedActivity.length > 0
-                ? (activityPage - 1) * activityPageSize + 1
-                : 0
-            }}
-            -
-            {{
-              Math.min(activityPage * activityPageSize, filteredActivity.length)
-            }}
-          </span>
+          <span>{{
+            t("dashboard.activityPageStatus", {
+              total: filteredActivity.length,
+              start:
+                pagedActivity.length > 0
+                  ? (activityPage - 1) * activityPageSize + 1
+                  : 0,
+              end: Math.min(
+                activityPage * activityPageSize,
+                filteredActivity.length,
+              ),
+            })
+          }}</span>
           <div class="flex items-center gap-2">
             <button
               type="button"

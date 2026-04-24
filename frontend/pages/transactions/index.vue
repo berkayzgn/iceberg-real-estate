@@ -12,13 +12,14 @@ import {
   STAGE_ORDER,
   calculateCommission,
   formatCurrency,
-  formatDate,
 } from "~/utils/domain";
 import { toApiErrorInfo } from "~/utils/api-error";
+
 const tx = useTransactionsStore();
 const agents = useAgentsStore();
 const toast = useToastStore();
 const { t } = useI18n();
+const { formatDateShort } = useDateTimeFormat();
 
 function getAgent(id: string) {
   return agents.findById(id);
@@ -89,7 +90,7 @@ async function removeTxn(id: string) {
     await tx.removeTransaction(id);
     toast.success(t("common.delete"), t("common.panel"));
   } catch (error) {
-    const err = toApiErrorInfo(error, t("transactions.deleteError"));
+    const err = toApiErrorInfo(error, t, "transactions.deleteError");
     toast.error(err.message, err.title);
   }
 }
@@ -348,7 +349,7 @@ async function removeTxn(id: string) {
                 </span>
               </td>
               <td class="px-4 py-4 text-sm text-[#64748B]">
-                {{ formatDate(txn.date) }}
+                {{ formatDateShort(txn.date) }}
               </td>
               <td class="px-4 py-4">
                 <div class="flex items-center justify-end gap-2">
@@ -384,7 +385,7 @@ async function removeTxn(id: string) {
             <TransactionStageBadge :stage="txn.stage" size="sm" />
           </div>
           <p class="mb-3 text-xs text-[#94A3B8]">
-            {{ txn.id }} · {{ formatDate(txn.date) }}
+            {{ txn.id }} · {{ formatDateShort(txn.date) }}
           </p>
           <div class="flex items-center justify-between">
             <ReportsAgentChip

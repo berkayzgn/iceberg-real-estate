@@ -3,7 +3,7 @@ import { toApiErrorInfo } from "~/utils/api-error";
 import { AGENT_SPEC_KEYS, AGENT_TITLE_KEYS } from "~/utils/agent-labels";
 import {
   PHONE_DIAL_OPTIONS,
-  phoneDialLabel,
+  formatDialOptionLabel,
 } from "~/utils/phone-dial-codes";
 import { buildE164Phone, nationalDigitsOnly } from "~/utils/phone-e164";
 
@@ -16,7 +16,7 @@ const emit = defineEmits<{
 
 const agents = useAgentsStore();
 const toast = useToastStore();
-const { t, locale } = useI18n();
+const { t } = useI18n();
 
 const form = reactive({
   name: "",
@@ -69,7 +69,7 @@ async function create() {
     reset();
     emit("close");
   } catch (error) {
-    const err = toApiErrorInfo(error, t("agents.addError"));
+    const err = toApiErrorInfo(error, t, "agents.addError");
     toast.error(err.message, err.title);
   }
 }
@@ -176,7 +176,7 @@ watch(
                   :key="opt.dial"
                   :value="opt.dial"
                 >
-                  {{ phoneDialLabel(opt, locale) }}
+                  {{ formatDialOptionLabel(opt, t) }}
                 </option>
               </select>
             </div>
