@@ -1,10 +1,12 @@
 <script setup lang="ts">
-import { Building2, Mail, Lock, Eye, EyeOff } from "lucide-vue-next";
 import { toApiErrorInfo } from "~/utils/api-error";
 
 definePageMeta({
   layout: false,
 });
+
+const HERO_IMAGE =
+  "https://lh3.googleusercontent.com/aida-public/AB6AXuBC5JZusNWq14jTGshhyXCulFEVsqJtVUpDvJFwMZoBLPgwBbpWvJ7ChLL4gDx5oPnsjTBrEgKMC82VTTnSO3yo4Oplj0nru_JfuxcbbPIusyUhu-2tWxmXWUVtCSjrRyqEuM0KtVI-g4lYcBEVMYe0_eKuF7eFJWBC30INbtOz0zKlYMuTpNVbd9b01EVQ8bUFXXAguxPsGWt96By_uD1Dm1nHyCleQ2nfR-KqQMIw7h9uxEH6xrGyMNzvwlDZc4Kv7R6nQUsWvrk";
 
 const { t, locale } = useI18n();
 const auth = useAuthStore();
@@ -23,6 +25,16 @@ watch([email, password], () => {
 useHead({
   title: () => `${t("login.title")} · ${t("brand.name")}`,
   htmlAttrs: { lang: () => (locale.value === "tr" ? "tr" : "en") },
+  link: [
+    {
+      rel: "stylesheet",
+      href: "https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap",
+    },
+    {
+      rel: "stylesheet",
+      href: "https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0..1,0&display=swap",
+    },
+  ],
 });
 
 onMounted(() => {
@@ -53,99 +65,164 @@ async function submit() {
 
 <template>
   <div
-    class="flex min-h-screen flex-col items-center justify-center bg-[#0A1628] px-4 py-12"
+    class="flex min-h-screen w-full bg-white font-['Inter',ui-sans-serif,system-ui,sans-serif] text-base text-[#0A1628]"
   >
-    <div class="mb-8 flex items-center gap-3 text-white">
+    <!-- Sol: görsel + marka (panel laciverti) -->
+    <div
+      class="relative hidden w-1/2 overflow-hidden bg-[#E8EDF5] lg:block"
+    >
+      <img
+        :src="HERO_IMAGE"
+        alt=""
+        class="absolute inset-0 h-full w-full object-cover"
+        width="1200"
+        height="1600"
+        decoding="async"
+      />
       <div
-        class="flex h-11 w-11 items-center justify-center rounded-xl"
-        style="background-color: #d4a853"
-      >
-        <Building2 class="h-6 w-6 text-white" />
-      </div>
-      <div>
-        <p
-          class="text-lg font-bold tracking-tight"
+        class="absolute inset-0 bg-gradient-to-t from-[#0A1628]/90 via-[#0A1628]/35 to-transparent"
+      />
+      <div class="absolute bottom-12 left-10 right-10 text-white lg:bottom-16 lg:left-16 lg:right-16">
+        <h2
+          class="mb-3 text-3xl font-semibold leading-tight tracking-tight"
           style="font-family: 'Plus Jakarta Sans', ui-sans-serif, system-ui"
         >
-          {{ t("brand.name") }}
+          {{ t("login.heroTitle") }}
+        </h2>
+        <p class="max-w-md text-lg leading-relaxed text-white/85">
+          {{ t("login.heroBody") }}
         </p>
-        <p class="text-xs text-white/50">{{ t("brand.productSubtitle") }}</p>
       </div>
     </div>
 
-    <form
-      class="w-full max-w-md rounded-2xl border border-white/10 bg-white p-8 shadow-2xl"
-      @submit.prevent="submit"
+    <!-- Sağ: form (Iceberg renkleri) -->
+    <div
+      class="flex w-full items-center justify-center bg-[#FAFBFC] p-6 lg:w-1/2 lg:p-10"
     >
-      <h1 class="text-xl font-semibold text-[#0A1628]">{{ t("login.title") }}</h1>
-      <p class="mt-1 text-sm text-[#64748B]">{{ t("login.portalSubtitle") }}</p>
-
-      <label class="mt-6 block text-sm font-medium text-[#0A1628]">
-        {{ t("login.email") }}
-        <div class="relative mt-1">
-          <Mail
-            class="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[#94A3B8]"
-          />
-          <input
-            id="login-email"
-            v-model="email"
-            type="email"
-            name="email"
-            autocomplete="username"
-            required
-            class="w-full rounded-xl border border-[#E2E8F0] py-2.5 pl-10 pr-3 text-sm text-[#0A1628] placeholder:text-[#94A3B8] focus:border-[#D4A853] focus:outline-none focus:ring-2 focus:ring-[#D4A853]/20"
-            :placeholder="t('login.emailPlaceholder')"
-          />
-        </div>
-      </label>
-
-      <label class="mt-4 block text-sm font-medium text-[#0A1628]">
-        {{ t("login.password") }}
-        <div class="relative mt-1">
-          <Lock
-            class="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[#94A3B8]"
-          />
-          <input
-            id="login-password"
-            v-model="password"
-            :type="showPassword ? 'text' : 'password'"
-            name="password"
-            autocomplete="current-password"
-            required
-            class="w-full rounded-xl border border-[#E2E8F0] py-2.5 pl-10 pr-12 text-sm text-[#0A1628] placeholder:text-[#94A3B8] focus:border-[#D4A853] focus:outline-none focus:ring-2 focus:ring-[#D4A853]/20"
-            :placeholder="t('login.passwordPlaceholder')"
-          />
-          <button
-            type="button"
-            class="absolute right-2 top-1/2 -translate-y-1/2 rounded-lg p-1.5 text-[#64748B] transition-colors hover:bg-[#F1F5F9] hover:text-[#0A1628]"
-            :aria-label="showPassword ? t('login.hide') : t('login.show')"
-            @click="showPassword = !showPassword"
+      <div class="w-full max-w-md">
+        <div class="mb-12 text-center lg:mb-14">
+          <div
+            class="mb-3 inline-flex h-12 w-12 items-center justify-center rounded-xl shadow-sm"
+            style="background-color: #d4a853"
           >
-            <EyeOff v-if="showPassword" class="h-4 w-4" />
-            <Eye v-else class="h-4 w-4" />
-          </button>
+            <span
+              class="material-symbols-outlined text-[26px] text-white"
+              aria-hidden="true"
+              style="
+                font-variation-settings:
+                  'FILL' 1,
+                  'wght' 400,
+                  'GRAD' 0,
+                  'opsz' 24;
+              "
+              >domain</span
+            >
+          </div>
+          <h1
+            class="mb-1 text-2xl font-semibold text-[#0A1628]"
+            style="font-family: 'Plus Jakarta Sans', ui-sans-serif, system-ui"
+          >
+            {{ t("brand.name") }}
+          </h1>
+          <p class="text-sm text-[#64748B]">
+            {{ t("login.portalSubtitle") }}
+          </p>
         </div>
-      </label>
 
-      <div
-        v-if="loginError"
-        class="mt-4 rounded-xl border border-red-200 bg-red-50 px-3 py-2.5 text-sm text-red-800"
-        role="alert"
-      >
-        {{ loginError }}
+        <form class="space-y-6" @submit.prevent="submit">
+          <div>
+            <label
+              class="mb-2 block text-xs font-semibold uppercase tracking-wider text-[#0A1628]"
+              for="login-email"
+            >
+              {{ t("login.email") }}
+            </label>
+            <div class="relative">
+              <div
+                class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3"
+              >
+                <span
+                  class="material-symbols-outlined text-[20px] text-[#64748B]"
+                  aria-hidden="true"
+                  >mail</span
+                >
+              </div>
+              <input
+                id="login-email"
+                v-model="email"
+                type="email"
+                name="email"
+                autocomplete="username"
+                required
+                class="block w-full rounded-lg border border-[#E2E8F0] bg-white py-2.5 pl-10 pr-3 text-sm text-[#0A1628] placeholder:text-[#94A3B8] focus:border-[#D4A853] focus:outline-none focus:ring-2 focus:ring-[#D4A853]/25"
+                :placeholder="t('login.emailPlaceholder')"
+              />
+            </div>
+          </div>
+
+          <div>
+            <label
+              class="mb-2 block text-xs font-semibold uppercase tracking-wider text-[#0A1628]"
+              for="login-password"
+            >
+              {{ t("login.password") }}
+            </label>
+            <div class="relative">
+              <div
+                class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3"
+              >
+                <span
+                  class="material-symbols-outlined text-[20px] text-[#64748B]"
+                  aria-hidden="true"
+                  >lock</span
+                >
+              </div>
+              <input
+                id="login-password"
+                v-model="password"
+                :type="showPassword ? 'text' : 'password'"
+                name="password"
+                autocomplete="current-password"
+                required
+                class="block w-full rounded-lg border border-[#E2E8F0] bg-white py-2.5 pl-10 pr-11 text-sm text-[#0A1628] placeholder:text-[#94A3B8] focus:border-[#D4A853] focus:outline-none focus:ring-2 focus:ring-[#D4A853]/25"
+                :placeholder="t('login.passwordPlaceholder')"
+              />
+              <button
+                type="button"
+                class="absolute inset-y-0 right-0 flex items-center pr-3 text-[#64748B] transition-colors hover:text-[#0A1628]"
+                :aria-label="showPassword ? t('login.hide') : t('login.show')"
+                @click="showPassword = !showPassword"
+              >
+                <span class="material-symbols-outlined text-[20px]" aria-hidden="true">{{
+                  showPassword ? "visibility_off" : "visibility"
+                }}</span>
+              </button>
+            </div>
+          </div>
+
+          <div
+            v-if="loginError"
+            class="rounded-lg border border-red-200 bg-red-50 px-3 py-2.5 text-sm text-red-800"
+            role="alert"
+          >
+            {{ loginError }}
+          </div>
+
+          <div class="pt-1">
+            <button
+              type="submit"
+              class="w-full rounded-lg bg-[#D4A853] px-4 py-3 text-sm font-semibold text-white shadow-md transition-opacity hover:opacity-90 focus:outline-none focus:ring-2 focus:ring-[#D4A853] focus:ring-offset-2 disabled:opacity-60"
+              :disabled="submitting"
+            >
+              {{ submitting ? t("login.submitting") : t("login.submit") }}
+            </button>
+          </div>
+        </form>
+
+        <p class="mt-10 text-center text-xs text-[#94A3B8]">
+          {{ t("brand.copyright") }}
+        </p>
       </div>
-
-      <button
-        type="submit"
-        class="mt-6 w-full rounded-xl bg-[#D4A853] py-3 text-sm font-semibold text-white shadow-md transition-opacity hover:opacity-90 disabled:opacity-60"
-        :disabled="submitting"
-      >
-        {{ submitting ? t("login.submitting") : t("login.submit") }}
-      </button>
-    </form>
-
-    <p class="mt-8 text-center text-xs text-white/40">
-      {{ t("brand.copyright") }}
-    </p>
+    </div>
   </div>
 </template>
