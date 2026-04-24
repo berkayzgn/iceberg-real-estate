@@ -6,6 +6,8 @@
     "reports": "Raporlar",
     "newTransaction": "Yeni işlem",
     "logout": "Çıkış",
+    "confirmTitle": "Onay",
+    "confirm": "Onayla",
     "collapse": "Daralt",
     "expand": "Genişlet",
     "showing": "{filtered} / {total} gösteriliyor",
@@ -62,6 +64,16 @@
     "authMissingToken": "Oturum gerekli.",
     "authInvalidToken": "Oturum süresi doldu veya geçersiz.",
     "invalidCredentials": "E-posta veya şifre hatalı."
+  },
+  "validation": {
+    "minLength": "En az {n} karakter olmalı.",
+    "maxLength": "En fazla {n} karakter olmalı.",
+    "email": "Geçerli bir e-posta adresi girin.",
+    "mongoId": "Geçersiz tanımlayıcı.",
+    "number": "Geçerli bir sayı girin.",
+    "positive": "Sayı 0'dan büyük olmalı.",
+    "string": "Geçersiz değer.",
+    "oneOf": "Geçerli değerler: {values}"
   },
   "activity": {
     "transactionCreated": "Anlaşma imzalandı. İşlem oluşturuldu.",

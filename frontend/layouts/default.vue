@@ -32,6 +32,7 @@ onMounted(async () => {
       @created="(id) => navigateTo(`/transactions/${id}`)"
     />
 
+    <SharedConfirmModal />
     <SharedAppToaster />
   </div>
 </template>

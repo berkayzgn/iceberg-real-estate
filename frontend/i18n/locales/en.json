@@ -6,6 +6,8 @@
     "reports": "Reports",
     "newTransaction": "New transaction",
     "logout": "Logout",
+    "confirmTitle": "Confirm",
+    "confirm": "Confirm",
     "collapse": "Collapse",
     "expand": "Expand",
     "showing": "Showing {filtered} / {total}",
@@ -62,6 +64,16 @@
     "authMissingToken": "Sign in required.",
     "authInvalidToken": "Session expired. Please sign in again.",
     "invalidCredentials": "Invalid email or password."
+  },
+  "validation": {
+    "minLength": "Must be at least {n} characters.",
+    "maxLength": "Must be at most {n} characters.",
+    "email": "Please enter a valid email address.",
+    "mongoId": "Invalid identifier.",
+    "number": "Please enter a valid number.",
+    "positive": "Must be greater than 0.",
+    "string": "Invalid value.",
+    "oneOf": "Allowed values: {values}"
   },
   "activity": {
     "transactionCreated": "Agreement signed. Transaction created.",

@@ -125,7 +125,14 @@ async function removeAgent() {
     toast.error(t("agents.deleteBlockedHint"), t("common.panel"));
     return;
   }
-  const ok = window.confirm(t("common.confirmDelete"));
+  const confirm = useConfirmStore();
+  const ok = await confirm.confirm({
+    title: t("common.confirmTitle"),
+    message: t("common.confirmDelete"),
+    confirmText: t("common.confirm"),
+    cancelText: t("common.cancel"),
+    tone: "danger",
+  });
   if (!ok) return;
   deleting.value = true;
   try {

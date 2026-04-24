@@ -70,6 +70,16 @@ async function create() {
     emit("close");
   } catch (error) {
     const err = toApiErrorInfo(error, t, "agents.addError");
+    if (err.fieldErrors) {
+      for (const k of Object.keys(errors)) delete errors[k];
+      if (err.fieldErrors.firstName?.length) errors.name = err.fieldErrors.firstName[0]!;
+      else if (err.fieldErrors.lastName?.length) errors.name = err.fieldErrors.lastName[0]!;
+      if (err.fieldErrors.email?.length) errors.email = err.fieldErrors.email[0]!;
+      if (err.fieldErrors.phone?.length) errors.phone = err.fieldErrors.phone[0]!;
+      if (err.fieldErrors.title?.length) errors.title = err.fieldErrors.title[0]!;
+      if (err.fieldErrors.specialization?.length)
+        errors.specialization = err.fieldErrors.specialization[0]!;
+    }
     toast.error(err.message, err.title);
   }
 }
@@ -110,39 +120,29 @@ watch(
           </p>
         </div>
         <div>
-          <select
+          <SharedAppSelect
             v-model="form.title"
-            class="w-full rounded-lg border border-[#E2E8F0] px-3 py-2.5 text-sm"
-          >
-            <option value="" disabled>{{ t("agents.selectTitle") }}</option>
-            <option
-              v-for="titleKey in AGENT_TITLE_KEYS"
-              :key="titleKey"
-              :value="titleKey"
-            >
-              {{ t(`agents.titles.${titleKey}`) }}
-            </option>
-          </select>
+            button-class="bg-white py-2.5"
+            :placeholder="t('agents.selectTitle')"
+            :options="AGENT_TITLE_KEYS.map((titleKey) => ({
+              value: titleKey,
+              label: t(`agents.titles.${titleKey}`),
+            }))"
+          />
           <p v-if="errors.title" class="mt-1 text-xs text-red-500">
             {{ errors.title }}
           </p>
         </div>
         <div>
-          <select
+          <SharedAppSelect
             v-model="form.specialization"
-            class="w-full rounded-lg border border-[#E2E8F0] px-3 py-2.5 text-sm"
-          >
-            <option value="" disabled>
-              {{ t("agents.selectSpecialization") }}
-            </option>
-            <option
-              v-for="specKey in AGENT_SPEC_KEYS"
-              :key="specKey"
-              :value="specKey"
-            >
-              {{ t(`agents.specializations.${specKey}`) }}
-            </option>
-          </select>
+            button-class="bg-white py-2.5"
+            :placeholder="t('agents.selectSpecialization')"
+            :options="AGENT_SPEC_KEYS.map((specKey) => ({
+              value: specKey,
+              label: t(`agents.specializations.${specKey}`),
+            }))"
+          />
           <p v-if="errors.specialization" class="mt-1 text-xs text-red-500">
             {{ errors.specialization }}
           </p>
@@ -166,19 +166,14 @@ watch(
               <label class="sr-only" for="agent-dial-code">{{
                 t("agents.countryCode")
               }}</label>
-              <select
-                id="agent-dial-code"
+              <SharedAppSelect
                 v-model="form.dialCode"
-                class="h-full w-full rounded-lg border border-[#E2E8F0] bg-white px-3 py-2.5 text-sm text-[#0A1628] focus:border-[#D4A853] focus:outline-none focus:ring-1 focus:ring-[#D4A853]"
-              >
-                <option
-                  v-for="opt in PHONE_DIAL_OPTIONS"
-                  :key="opt.dial"
-                  :value="opt.dial"
-                >
-                  {{ formatDialOptionLabel(opt, t) }}
-                </option>
-              </select>
+                button-class="bg-white py-2.5"
+                :options="PHONE_DIAL_OPTIONS.map((opt) => ({
+                  value: opt.dial,
+                  label: formatDialOptionLabel(opt, t),
+                }))"
+              />
             </div>
             <div class="min-w-0 flex-1">
               <label class="sr-only" for="agent-phone-national">{{

@@ -102,7 +102,14 @@ async function advance() {
 
 async function removeTransaction() {
   if (!transaction.value) return;
-  const ok = window.confirm(t("common.confirmDelete"));
+  const confirm = useConfirmStore();
+  const ok = await confirm.confirm({
+    title: t("common.confirmTitle"),
+    message: t("common.confirmDelete"),
+    confirmText: t("common.confirm"),
+    cancelText: t("common.cancel"),
+    tone: "danger",
+  });
   if (!ok) return;
 
   try {

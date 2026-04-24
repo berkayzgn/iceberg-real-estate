@@ -111,6 +111,19 @@ async function create() {
     emit("close");
   } catch (error) {
     const err = toApiErrorInfo(error, t, "createTransaction.createError");
+    if (err.fieldErrors) {
+      for (const k of Object.keys(errors)) delete errors[k];
+      if (err.fieldErrors.propertyAddress?.length)
+        errors.propertyAddress = err.fieldErrors.propertyAddress[0]!;
+      if (err.fieldErrors.propertyType?.length)
+        errors.propertyType = err.fieldErrors.propertyType[0]!;
+      if (err.fieldErrors.transactionValue?.length)
+        errors.transactionValue = err.fieldErrors.transactionValue[0]!;
+      if (err.fieldErrors.listingAgent?.length)
+        errors.listingAgentId = err.fieldErrors.listingAgent[0]!;
+      if (err.fieldErrors.sellingAgent?.length)
+        errors.sellingAgentId = err.fieldErrors.sellingAgent[0]!;
+    }
     toast.error(err.message, err.title);
   }
 }
@@ -228,19 +241,19 @@ watch(
               <Users class="mr-1 inline h-4 w-4 text-[#64748B]" />
               {{ t("transactions.listingAgent") }}
             </label>
-            <select
+            <SharedAppSelect
               v-model="form.listingAgentId"
-              class="w-full cursor-pointer rounded-lg border border-[#E2E8F0] bg-white px-3 py-2.5 text-sm text-[#0A1628] transition-all focus:border-[#D4A853] focus:outline-none focus:ring-2 focus:ring-[#D4A853]/20"
-              @change="onListingAgentChange"
-            >
-              <option :value="NEW_AGENT_VALUE">
-                {{ t("createTransaction.addNew") }}
-              </option>
-              <option value="">{{ t("createTransaction.select") }}</option>
-              <option v-for="a in agents.agents" :key="a.id" :value="a.id">
-                {{ a.name }} — {{ formatTitle(a.title) }}
-              </option>
-            </select>
+              button-class="bg-white py-2.5"
+              :options="[
+                { value: NEW_AGENT_VALUE, label: t('createTransaction.addNew') },
+                { value: '', label: t('createTransaction.select') },
+                ...agents.agents.map((a) => ({
+                  value: a.id,
+                  label: `${a.name} — ${formatTitle(a.title)}`,
+                })),
+              ]"
+              @update:model-value="(v) => (v === NEW_AGENT_VALUE ? onListingAgentChange() : undefined)"
+            />
             <p v-if="errors.listingAgentId" class="mt-1 text-xs text-red-500">
               {{ errors.listingAgentId }}
             </p>
@@ -250,19 +263,19 @@ watch(
             <label class="mb-1.5 block text-sm font-medium text-[#0A1628]">{{
               t("transactions.sellingAgent")
             }}</label>
-            <select
+            <SharedAppSelect
               v-model="form.sellingAgentId"
-              class="w-full cursor-pointer rounded-lg border border-[#E2E8F0] bg-white px-3 py-2.5 text-sm text-[#0A1628] transition-all focus:border-[#D4A853] focus:outline-none focus:ring-2 focus:ring-[#D4A853]/20"
-              @change="onSellingAgentChange"
-            >
-              <option :value="NEW_AGENT_VALUE">
-                {{ t("createTransaction.addNew") }}
-              </option>
-              <option value="">{{ t("createTransaction.select") }}</option>
-              <option v-for="a in agents.agents" :key="a.id" :value="a.id">
-                {{ a.name }} — {{ formatTitle(a.title) }}
-              </option>
-            </select>
+              button-class="bg-white py-2.5"
+              :options="[
+                { value: NEW_AGENT_VALUE, label: t('createTransaction.addNew') },
+                { value: '', label: t('createTransaction.select') },
+                ...agents.agents.map((a) => ({
+                  value: a.id,
+                  label: `${a.name} — ${formatTitle(a.title)}`,
+                })),
+              ]"
+              @update:model-value="(v) => (v === NEW_AGENT_VALUE ? onSellingAgentChange() : undefined)"
+            />
             <p v-if="errors.sellingAgentId" class="mt-1 text-xs text-red-500">
               {{ errors.sellingAgentId }}
             </p>

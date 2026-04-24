@@ -84,7 +84,14 @@ function clearFilters() {
 }
 
 async function removeTxn(id: string) {
-  const ok = window.confirm(t("common.confirmDelete"));
+  const confirm = useConfirmStore();
+  const ok = await confirm.confirm({
+    title: t("common.confirmTitle"),
+    message: t("common.confirmDelete"),
+    confirmText: t("common.confirm"),
+    cancelText: t("common.cancel"),
+    tone: "danger",
+  });
   if (!ok) return;
   try {
     await tx.removeTransaction(id);
@@ -129,26 +136,24 @@ async function removeTxn(id: string) {
 
         <div class="flex items-center gap-1.5">
           <SlidersHorizontal class="h-4 w-4 text-[#94A3B8]" />
-          <select
+          <SharedAppSelect
             v-model="stageFilter"
-            class="cursor-pointer rounded-lg border border-[#E2E8F0] bg-[#FAFBFC] px-3 py-2 text-sm text-[#0A1628] transition-all focus:border-[#D4A853] focus:outline-none"
-          >
-            <option value="all">{{ t("transactions.allStages") }}</option>
-            <option v-for="s in STAGE_ORDER" :key="s" :value="s">
-              {{ t(`stages.${s}`) }}
-            </option>
-          </select>
+            class="min-w-[200px]"
+            :options="[
+              { value: 'all', label: t('transactions.allStages') },
+              ...STAGE_ORDER.map((s) => ({ value: s, label: t(`stages.${s}`) })),
+            ]"
+          />
         </div>
 
-        <select
+        <SharedAppSelect
           v-model="agentFilter"
-          class="cursor-pointer rounded-lg border border-[#E2E8F0] bg-[#FAFBFC] px-3 py-2 text-sm text-[#0A1628] transition-all focus:border-[#D4A853] focus:outline-none"
-        >
-          <option value="all">{{ t("transactions.allAgents") }}</option>
-          <option v-for="a in agents.agents" :key="a.id" :value="a.id">
-            {{ a.name }}
-          </option>
-        </select>
+          class="min-w-[220px]"
+          :options="[
+            { value: 'all', label: t('transactions.allAgents') },
+            ...agents.agents.map((a) => ({ value: a.id, label: a.name })),
+          ]"
+        />
 
         <div
           class="flex overflow-hidden rounded-lg border border-[#E2E8F0] text-sm"

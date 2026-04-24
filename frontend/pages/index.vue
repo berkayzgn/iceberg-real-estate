@@ -275,18 +275,15 @@ onMounted(async () => {
         </div>
         <div class="flex items-center gap-2">
           <Filter class="h-4 w-4 text-[#94A3B8]" />
-          <select
+          <SharedAppSelect
             v-model="activityType"
-            class="rounded-lg border border-[#E2E8F0] bg-white px-3 py-1.5 text-xs text-[#0A1628] focus:border-[#D4A853] focus:outline-none"
-          >
-            <option value="all">{{ t("dashboard.activityFilterAll") }}</option>
-            <option value="stage_change">
-              {{ t("dashboard.activityFilterStage") }}
-            </option>
-            <option value="financial">
-              {{ t("dashboard.activityFilterFinancial") }}
-            </option>
-          </select>
+            button-class="bg-white px-3 py-1.5 text-xs"
+            :options="[
+              { value: 'all', label: t('dashboard.activityFilterAll') },
+              { value: 'stage_change', label: t('dashboard.activityFilterStage') },
+              { value: 'financial', label: t('dashboard.activityFilterFinancial') },
+            ]"
+          />
         </div>
       </div>
       <div

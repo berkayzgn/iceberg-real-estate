@@ -1,9 +1,33 @@
 import { ConfigService } from '@nestjs/config';
-import { ValidationPipe } from '@nestjs/common';
+import { BadRequestException, ValidationPipe } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
+import type { ValidationError } from 'class-validator';
 import { AppModule } from './app.module';
 import { GlobalHttpExceptionFilter } from './common/filters/http-exception.filter';
+
+function flattenValidationErrors(errors: ValidationError[]): {
+  errors: string[];
+  fieldErrors: Record<string, string[]>;
+} {
+  const messages: string[] = [];
+  const fieldErrors: Record<string, string[]> = {};
+
+  const walk = (e: ValidationError, path: string) => {
+    const key = path ? `${path}.${e.property}` : e.property;
+    if (e.constraints) {
+      const vals = Object.values(e.constraints).map(String);
+      messages.push(...vals);
+      fieldErrors[key] = [...(fieldErrors[key] ?? []), ...vals];
+    }
+    if (e.children?.length) {
+      for (const c of e.children) walk(c, key);
+    }
+  };
+
+  for (const e of errors) walk(e, '');
+  return { errors: messages, fieldErrors };
+}
 
 function parseCorsOrigins(): string[] {
   const raw = process.env.CORS_ORIGINS?.trim() ?? '';
@@ -48,6 +72,16 @@ async function bootstrap() {
       whitelist: true,
       transform: true,
       forbidNonWhitelisted: true,
+      exceptionFactory: (errors) => {
+        const { errors: msgs, fieldErrors } = flattenValidationErrors(
+          errors as ValidationError[],
+        );
+        return new BadRequestException({
+          message: 'errors.validationFailed',
+          errors: msgs,
+          fieldErrors,
+        });
+      },
     }),
   );
   app.useGlobalFilters(new GlobalHttpExceptionFilter());
