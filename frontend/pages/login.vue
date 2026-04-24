@@ -65,10 +65,21 @@ async function submit() {
     <div
       class="relative hidden w-1/2 overflow-hidden bg-[#0A1628] lg:block"
     >
-      <div
-        class="absolute inset-0 bg-[radial-gradient(ellipse_at_30%_20%,rgba(212,168,83,0.18),transparent_50%),radial-gradient(ellipse_at_70%_80%,rgba(232,237,245,0.12),transparent_45%),linear-gradient(to_top,rgba(10,22,40,0.95),rgba(10,22,40,0.55),transparent)]"
+      <img
+        src="/img/iceberg.jpg"
+        alt=""
+        class="absolute inset-0 h-full w-full object-cover"
+        width="1920"
+        height="1280"
+        decoding="async"
+        fetchpriority="high"
       />
-      <div class="absolute bottom-12 left-10 right-10 text-white lg:bottom-16 lg:left-16 lg:right-16">
+      <div
+        class="absolute inset-0 bg-[radial-gradient(ellipse_at_30%_20%,rgba(212,168,83,0.14),transparent_50%),radial-gradient(ellipse_at_70%_80%,rgba(10,22,40,0.2),transparent_45%),linear-gradient(to_top,rgba(10,22,40,0.92),rgba(10,22,40,0.45),transparent)]"
+      />
+      <div
+        class="absolute bottom-12 left-10 right-10 z-10 text-white lg:bottom-16 lg:left-16 lg:right-16"
+      >
         <h2
           class="mb-3 text-3xl font-semibold leading-tight tracking-tight"
           style="font-family: 'Plus Jakarta Sans', ui-sans-serif, system-ui"
